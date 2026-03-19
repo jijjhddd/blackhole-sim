@@ -1,0 +1,541 @@
+
+<!-- ========== 底部控制面板 ========== -->
+<div id="panel-container">
+    <div id="panel-indicator">
+        <i class="fas fa-chevron-up"></i>
+        <span>展开控制面板</span>
+    </div>
+    <div id="bottom-panel">
+        <!-- 面板头部：选项卡 -->
+        <div class="panel-header">
+            <div class="tab-container">
+                <button class="tab-button active" data-tab="stats"><i class="fas fa-chart-bar"></i> 统计</button>
+                <button class="tab-button" data-tab="control"><i class="fas fa-gamepad"></i> 控制</button>
+                <button class="tab-button" data-tab="charts"><i class="fas fa-chart-line"></i> 图表</button>
+                <button class="tab-button" data-tab="settings"><i class="fas fa-cog"></i> 设置</button>
+                <button class="tab-button" data-tab="performance"><i class="fas fa-tachometer-alt"></i> 性能</button>
+                <button class="tab-button" data-tab="logs"><i class="fas fa-file-alt"></i> 日志</button>
+                <button class="tab-button" data-tab="about"><i class="fas fa-info-circle"></i> 关于</button>
+            </div>
+        </div>
+
+        <!-- 面板内容区域 -->
+        <div class="panel-content">
+            <!-- 统计标签页 -->
+            <div id="stats-tab" class="tab-content active">
+                <div class="sub-tab-container">
+                    <button class="sub-tab-button active" data-subtab="statistics"><i class="fas fa-chart-pie"></i> 统计数据</button>
+                    <button class="sub-tab-button" data-subtab="meteor-list"><i class="fas fa-list"></i> 流星列表</button>
+                    <button class="sub-tab-button" data-subtab="stats-settings"><i class="fas fa-sliders-h"></i> 统计设置</button>
+                    <button class="sub-tab-button" data-subtab="save-load"><i class="fas fa-save"></i> 存档管理</button>
+                </div>
+
+                <!-- 统计数据子标签 -->
+                <div id="statistics-subtab" class="sub-tab-content active">
+                    <div class="stats-group">
+                        <h3><i class="fas fa-meteor"></i> 流星统计</h3>
+                        <div class="stats-container">
+                            <div class="stat-item"><span class="stat-label">当前流星数量</span><span class="stat-value" id="meteorsCount">0</span></div>
+                            <div class="stat-item"><span class="stat-label">已吞噬流星</span><span class="stat-value" id="consumedCount">0</span></div>
+                            <div class="stat-item"><span class="stat-label">生成流星总数</span><span class="stat-value" id="totalMeteors">0</span></div>
+                            <div class="stat-item"><span class="stat-label">平均流星速度</span><span class="stat-value" id="avgMeteorSpeed">0.0</span></div>
+                        </div>
+                    </div>
+                    <div class="stats-group">
+                        <h3><i class="fas fa-clock"></i> 时间统计</h3>
+                        <div class="stats-container">
+                            <div class="stat-item"><span class="stat-label">模拟运行时间</span><span class="stat-value" id="timeElapsed">0</span></div>
+                            <div class="stat-item"><span class="stat-label">吞噬率(个/秒)</span><span class="stat-value" id="consumptionRate">0.0</span></div>
+                            <div class="stat-item"><span class="stat-label">平均生存时间</span><span class="stat-value" id="avgSurvivalTime">0.0</span></div>
+                        </div>
+                    </div>
+                    <div class="stats-group">
+                        <h3><i class="fas fa-dust-storm"></i> 尘埃粒子</h3>
+                        <div class="stats-container">
+                            <div class="stat-item"><span class="stat-label">当前尘埃数量</span><span class="stat-value" id="dustCount">0</span></div>
+                            <div class="stat-item"><span class="stat-label">尘埃上限</span><span class="stat-value" id="maxDustParticlesValue">2000</span></div>
+                        </div>
+                    </div>
+                    <div class="stats-group">
+                        <h3><i class="fas fa-balance-scale"></i> 黑洞统计</h3>
+                        <div class="stats-container">
+                            <div class="stat-item"><span class="stat-label">黑洞引力强度</span><span class="stat-value" id="blackHoleStrength">1.8e5</span></div>
+                            <div class="stat-item"><span class="stat-label">事件视界半径</span><span class="stat-value" id="eventHorizonRadius">30</span></div>
+                            <div class="stat-item"><span class="stat-label">引力衰减指数</span><span class="stat-value" id="gravityFalloffValue">1.6</span></div>
+                            <div class="stat-item"><span class="stat-label">安全区半径</span><span class="stat-value" id="safetyZoneRadius">150</span></div>
+                        </div>
+                    </div>
+                    <div class="stats-group">
+                        <h3><i class="fas fa-eraser"></i> 数据管理</h3>
+                        <div class="button-group-double">
+                            <button id="clearSimulationStatsBtn"><i class="fas fa-trash"></i> 清除统计</button>
+                            <button id="exportStatsBtn"><i class="fas fa-download"></i> 导出统计</button>
+                        </div>
+                        <div class="option-description" style="margin-top: 10px;">清除统计将重置所有统计数据（流星总数、吞噬数量等），但不会清除游戏中的流星。</div>
+                    </div>
+                </div>
+
+                <!-- 流星列表子标签 -->
+                <div id="meteor-list-subtab" class="sub-tab-content">
+                    <div class="meteor-list-controls">
+                        <div class="meteor-list-filter">
+                            <button class="filter-btn active" data-filter="all">全部</button>
+                            <button class="filter-btn" data-filter="active">活跃</button>
+                            <button class="filter-btn" data-filter="consumed">已吞噬</button>
+                            <button class="filter-btn" data-filter="removed">已移除</button>
+                        </div>
+                        <button id="clearMeteorListBtn" class="meteor-action-btn remove"><i class="fas fa-trash"></i> 清空列表</button>
+                    </div>
+                    <div class="meteor-list-container" id="meteorListContainer">
+                        <div class="meteor-list-header">
+                            <div>颜色/ID</div>
+                            <div>位置</div>
+                            <div>速度</div>
+                            <div>大小</div>
+                            <div>质量</div>
+                            <div>状态/操作</div>
+                        </div>
+                    </div>
+                    <div class="empty-message" id="meteorListEmpty" style="display: none;">
+                        <i class="fas fa-meteor"></i>
+                        <p>当前没有流星数据</p>
+                        <p style="font-size: 0.8rem; margin-top: 5px;">流星被创建后将显示在这里</p>
+                    </div>
+                </div>
+
+                <!-- 统计设置子标签 -->
+                <div id="stats-settings-subtab" class="sub-tab-content">
+                    <div class="stats-settings-group">
+                        <h3><i class="fas fa-cogs"></i> 统计显示设置</h3>
+                        <div class="checkbox-container"><input type="checkbox" id="statsAutoUpdateCheckbox" checked><label for="statsAutoUpdateCheckbox">自动更新统计信息</label></div>
+                        <div class="checkbox-container"><input type="checkbox" id="statsShowDetailedCheckbox" checked><label for="statsShowDetailedCheckbox">显示详细统计</label></div>
+                        <div class="checkbox-container"><input type="checkbox" id="statsLogChangesCheckbox"><label for="statsLogChangesCheckbox">记录统计变化到日志</label></div>
+                        <div class="slider-container">
+                            <label class="control-label">统计更新频率 <span id="statsUpdateRateValue" class="control-value-display">1.0</span></label>
+                            <div class="slider-wrapper"><input type="range" id="statsUpdateRateSlider" min="0.5" max="5.0" step="0.5" value="1.0"></div>
+                            <div class="option-description">统计信息更新的频率（秒），数值越小更新越频繁。</div>
+                        </div>
+                    </div>
+                    <div class="stats-settings-group">
+                        <h3><i class="fas fa-meteor"></i> 流星统计设置</h3>
+                        <div class="checkbox-container"><input type="checkbox" id="statsTrackIndividualMeteors" checked><label for="statsTrackIndividualMeteors">跟踪单个流星统计</label></div>
+                        <div class="checkbox-container"><input type="checkbox" id="statsCalculateAverages" checked><label for="statsCalculateAverages">计算平均统计值</label></div>
+                        <div class="slider-container">
+                            <label class="control-label">流星历史记录数量 <span id="statsHistorySizeValue" class="control-value-display">50</span></label>
+                            <div class="slider-wrapper"><input type="range" id="statsHistorySizeSlider" min="10" max="200" step="10" value="50"></div>
+                            <div class="option-description">保存的流星历史记录数量，用于计算统计趋势。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 存档管理子标签 -->
+                <div id="save-load-subtab" class="sub-tab-content">
+                    <div class="stats-group">
+                        <h3><i class="fas fa-save"></i> 保存当前状态</h3>
+                        <div class="stats-container">
+                            <div class="stat-item" style="grid-column: span 2;">
+                                <input type="text" id="saveNameInput" placeholder="存档名称 (可选)" style="width:100%; padding:8px; background:#0a1a2a; color:#a0c8ff; border:1px solid #4a9eff; border-radius:4px;">
+                                <button id="saveStateBtn" class="meteor-action-btn" style="width:100%; margin-top:8px; background: linear-gradient(to right, #00b09b, #96c93d);"><i class="fas fa-save"></i> 保存状态</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stats-group">
+                        <h3><i class="fas fa-folder-open"></i> 加载存档</h3>
+                        <div class="stats-container">
+                            <div class="stat-item" style="grid-column: span 2;">
+                                <select id="savesList" style="width:100%; padding:8px; background:#0a1a2a; color:#a0c8ff; border:1px solid #4a9eff; border-radius:4px;">
+                                    <option value="">-- 选择存档 --</option>
+                                </select>
+                                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; margin-top: 8px;">
+                                    <button id="loadStateBtn" class="meteor-action-btn"><i class="fas fa-folder-open"></i> 加载</button>
+                                    <button id="refreshSavesBtn" class="meteor-action-btn"><i class="fas fa-sync-alt"></i> 刷新</button>
+                                </div>
+                                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; margin-top: 5px;">
+                                    <button id="copySaveBtn" class="meteor-action-btn"><i class="fas fa-copy"></i> 复制</button>
+                                    <button id="renameSaveBtn" class="meteor-action-btn"><i class="fas fa-edit"></i> 重命名</button>
+                                    <button id="deleteSaveBtn" class="meteor-action-btn remove"><i class="fas fa-trash"></i> 删除</button>
+                                    <button id="deleteAllSavesBtn" class="meteor-action-btn remove"><i class="fas fa-trash-alt"></i> 删除全部</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="option-description">存档保存在服务器 user/data 目录，支持随时保存和加载。</div>
+                </div>
+            </div>
+
+            <!-- 控制标签页 -->
+            <div id="control-tab" class="tab-content">
+                <div class="control-group">
+                    <h3><i class="fas fa-cog"></i> 黑洞参数</h3>
+                    <div class="slider-container">
+                        <label class="control-label">引力强度 <span id="blackHoleStrengthValue" class="control-value-display">1.8e5</span></label>
+                        <div class="slider-wrapper"><input type="range" id="blackHoleStrengthSlider" min="10000" max="500000" step="5000" value="180000"></div>
+                        <div class="option-description">黑洞引力强度，数值越大，引力越强。</div>
+                    </div>
+                    <div class="slider-container">
+                        <label class="control-label">黑洞大小 <span id="blackHoleSizeValue" class="control-value-display">30</span></label>
+                        <div class="slider-wrapper"><input type="range" id="blackHoleSizeSlider" min="10" max="100" step="1" value="30"></div>
+                        <div class="option-description">黑洞事件视界显示大小(像素)，同时也是吞噬半径。</div>
+                    </div>
+                    <div class="slider-container">
+                        <label class="control-label">引力衰减指数 <span id="gravityFalloffDisplay" class="control-value-display">1.6</span></label>
+                        <div class="slider-wrapper"><input type="range" id="gravityFalloffSlider" min="1.0" max="3.0" step="0.1" value="1.6"></div>
+                        <div class="option-description">引力随距离衰减的速度。数值越大，远距离引力衰减越快。</div>
+                    </div>
+                    <div class="slider-container">
+                        <label class="control-label">最小引力距离 <span id="minGravityDistanceValue" class="control-value-display">15</span></label>
+                        <div class="slider-wrapper"><input type="range" id="minGravityDistanceSlider" min="5" max="100" step="1" value="15"></div>
+                        <div class="option-description">计算引力时的最小距离(像素)，防止距离过近时引力过大。</div>
+                    </div>
+                    <div class="slider-container">
+                        <label class="control-label">安全区半径 <span id="safetyZoneValue" class="control-value-display">150</span></label>
+                        <div class="slider-wrapper"><input type="range" id="safetyZoneSlider" min="50" max="300" step="10" value="150"></div>
+                        <div class="option-description">点击放置流星的安全区半径(像素)。</div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3><i class="fas fa-meteor"></i> 流星参数</h3>
+                    <div class="slider-container">
+                        <label class="control-label">流星初始速度 <span id="speedValue" class="control-value-display">1.5</span></label>
+                        <div class="slider-wrapper"><input type="range" id="meteorSpeedSlider" min="0.5" max="15" step="0.5" value="1.5"></div>
+                        <div class="option-description">流星生成时的初始速度(像素/帧)。</div>
+                    </div>
+                    <div class="slider-container">
+                        <label class="control-label">流星数量 <span id="countValue" class="control-value-display">15</span></label>
+                        <div class="slider-wrapper"><input type="range" id="meteorCountSlider" min="1" max="50" step="1" value="15"></div>
+                        <div class="option-description">控制屏幕上同时显示的流星数量。</div>
+                    </div>
+                    <div class="slider-container">
+                        <label class="control-label">流星大小 <span id="meteorSizeValue" class="control-value-display">3-11</span></label>
+                        <div class="slider-wrapper"><input type="range" id="meteorSizeSlider" min="2" max="20" step="1" value="11"></div>
+                        <div class="option-description">流星的最大显示大小(像素)。</div>
+                    </div>
+                    <div class="slider-container">
+                        <label class="control-label">尘埃数量上限 <span id="maxDustParticlesValue" class="control-value-display">2000</span></label>
+                        <div class="slider-wrapper"><input type="range" id="maxDustParticlesSlider" min="500" max="5000" step="100" value="2000"></div>
+                        <div class="option-description">控制尘埃粒子的最大数量，达到上限后不再生成新尘埃。</div>
+                    </div>
+                    <div class="boundary-select-container">
+                        <label class="control-label">边界处理方式 <span id="boundaryModeValue" class="control-value-display">清除</span></label>
+                        <div class="select-wrapper">
+                            <select id="boundaryModeSelect">
+                                <option value="remove">清除模式</option>
+                                <option value="bounce">反弹模式</option>
+                                <option value="ignore">不处理</option>
+                            </select>
+                        </div>
+                        <div class="option-description">控制流星和尘埃超出边界时的处理方式。</div>
+                    </div>
+
+                    <div class="checkbox-container"><input type="checkbox" id="longPressCheckbox"><label for="longPressCheckbox">启用长按快速放置流星</label></div>
+                    <div id="longPressSettings" style="display: none;">
+                        <div class="slider-container">
+                            <label class="control-label">长按触发延迟 <span id="longPressDelayValue" class="control-value-display">0.5</span></label>
+                            <div class="slider-wrapper"><input type="range" id="longPressDelaySlider" min="0.1" max="2.0" step="0.1" value="0.5"></div>
+                            <div class="option-description">长按触发快速放置流星所需的延迟时间(秒)。</div>
+                        </div>
+                        <div class="slider-container">
+                            <label class="control-label">放置间隔时间 <span id="longPressIntervalValue" class="control-value-display">0.1</span></label>
+                            <div class="slider-wrapper"><input type="range" id="longPressIntervalSlider" min="0.05" max="0.5" step="0.05" value="0.1"></div>
+                            <div class="option-description">长按时连续放置流星的时间间隔(秒)。</div>
+                        </div>
+                        <div class="slider-container">
+                            <label class="control-label">滑动放置速度 <span id="swipePlacementSpeedValue" class="control-value-display">5</span></label>
+                            <div class="slider-wrapper"><input type="range" id="swipePlacementSpeedSlider" min="1" max="20" step="1" value="5"></div>
+                            <div class="option-description">滑动时放置流星的速度(像素/毫秒)。</div>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-container"><input type="checkbox" id="autoMeteorCheckbox"><label for="autoMeteorCheckbox">自动创建流星</label></div>
+                    <div class="checkbox-container"><input type="checkbox" id="clickPlacementCheckbox" checked><label for="clickPlacementCheckbox">允许点击放置流星</label></div>
+                    <div class="checkbox-container"><input type="checkbox" id="clickCooldownCheckbox"><label for="clickCooldownCheckbox">点击放置流星冷却</label></div>
+                    <div id="cooldownSliderContainer" style="display: none;">
+                        <div class="slider-container">
+                            <label class="control-label">点击冷却时间 <span id="cooldownValue" class="control-value-display">1.0</span></label>
+                            <div class="slider-wrapper"><input type="range" id="clickCooldownSlider" min="0.5" max="5.0" step="0.1" value="1.0"></div>
+                            <div class="option-description">点击放置流星的最小间隔时间(秒)。</div>
+                        </div>
+                    </div>
+
+                    <!-- 时间缩放滑块 -->
+                    <div class="control-group">
+                        <h3><i class="fas fa-clock"></i> 模拟速度</h3>
+                        <div class="slider-container">
+                            <label class="control-label">
+                                速度 <span id="timeScaleValue" class="control-value-display">1.0x</span>
+                            </label>
+                            <div class="slider-wrapper">
+                                <input type="range" id="timeScaleSlider" min="0.5" max="5.0" step="0.1" value="1.0">
+                            </div>
+                            <div class="option-description">
+                                <span style="color:#4a9eff;">慢速</span> ← 拖动滑块 → <span style="color:#ff5555;">快速</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="button-group-double">
+                        <button id="addMeteorBtn"><i class="fas fa-plus-circle"></i> 添加流星</button>
+                        <button id="clearAllMeteorsBtn"><i class="fas fa-trash"></i> 清除所有流星</button>
+                        <button id="pauseBtn"><i class="fas fa-pause"></i> 暂停模拟</button>
+                        <button id="resetBtn"><i class="fas fa-redo-alt"></i> 重置模拟</button>
+                    </div>
+                    
+                    <button id="detonateAllMeteorsBtn" class="meteor-action-btn" style="width:100%; margin-top:15px; background: linear-gradient(to right, #ff416c, #ff4b2b);">
+                        <i class="fas fa-bomb"></i> 引爆所有流星
+                    </button>
+                </div>
+            </div>
+
+            <!-- 图表标签页 -->
+            <div id="charts-tab" class="tab-content">
+                <div class="sub-tab-container">
+                    <button class="sub-tab-button active" data-subtab="game-charts"><i class="fas fa-gamepad"></i> 游戏数据</button>
+                    <button class="sub-tab-button" data-subtab="log-charts"><i class="fas fa-file-alt"></i> 日志数据</button>
+                    <button class="sub-tab-button" data-subtab="performance-charts"><i class="fas fa-tachometer-alt"></i> 性能数据</button>
+                    <button class="sub-tab-button" data-subtab="chart-settings"><i class="fas fa-sliders-h"></i> 图表设置</button>
+                </div>
+
+                <div id="game-charts-subtab" class="sub-tab-content active">
+                    <div class="chart-container">
+                        <div class="chart-row">
+                            <div class="chart-item"><h4><i class="fas fa-meteor"></i> 流星数量变化</h4><div class="chart-wrapper"><canvas id="meteorCountChart"></canvas></div></div>
+                            <div class="chart-item"><h4><i class="fas fa-fire"></i> 吞噬速率变化</h4><div class="chart-wrapper"><canvas id="consumptionRateChart"></canvas></div></div>
+                        </div>
+                        <div class="chart-row">
+                            <div class="chart-item"><h4><i class="fas fa-tachometer-alt"></i> 流星速度分布</h4><div class="chart-wrapper"><canvas id="meteorSpeedChart"></canvas></div></div>
+                            <div class="chart-item"><h4><i class="fas fa-clock"></i> 流星生存时间分布</h4><div class="chart-wrapper"><canvas id="survivalTimeChart"></canvas></div></div>
+                        </div>
+                        <div class="chart-row">
+                            <div class="chart-item full-width"><h4><i class="fas fa-dust-storm"></i> 尘埃粒子数量变化</h4><div class="chart-wrapper"><canvas id="dustCountChart"></canvas></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="log-charts-subtab" class="sub-tab-content">
+                    <div class="chart-container">
+                        <div class="chart-row">
+                            <div class="chart-item full-width"><h4><i class="fas fa-chart-pie"></i> 日志类型分布</h4><div class="chart-wrapper"><canvas id="logTypeChart"></canvas></div></div>
+                        </div>
+                        <div class="chart-row">
+                            <div class="chart-item full-width"><h4><i class="fas fa-chart-bar"></i> 日志时间分布</h4><div class="chart-wrapper"><canvas id="logTimeChart"></canvas></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="performance-charts-subtab" class="sub-tab-content">
+                    <div class="chart-container">
+                        <div class="chart-row">
+                            <div class="chart-item"><h4><i class="fas fa-tachometer-alt"></i> 帧率变化</h4><div class="chart-wrapper"><canvas id="fpsChart"></canvas></div></div>
+                            <div class="chart-item"><h4><i class="fas fa-memory"></i> 内存使用变化</h4><div class="chart-wrapper"><canvas id="memoryChart"></canvas></div></div>
+                        </div>
+                        <div class="chart-row">
+                            <div class="chart-item full-width"><h4><i class="fas fa-clock"></i> 渲染延迟变化</h4><div class="chart-wrapper"><canvas id="frameTimeChart"></canvas></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="chart-settings-subtab" class="sub-tab-content">
+                    <div class="chart-controls">
+                        <div class="chart-settings">
+                            <div class="slider-container">
+                                <label class="control-label">图表更新间隔 <span id="chartUpdateIntervalValue" class="control-value-display">1.0</span></label>
+                                <div class="slider-wrapper"><input type="range" id="chartUpdateIntervalSlider" min="0.5" max="5.0" step="0.5" value="1.0"></div>
+                                <div class="option-description">图表数据收集的时间间隔（秒）。</div>
+                            </div>
+                            <div class="slider-container">
+                                <label class="control-label">图表数据点上限 <span id="chartDataPointsLimitValue" class="control-value-display">300</span></label>
+                                <div class="slider-wrapper"><input type="range" id="chartDataPointsLimitSlider" min="50" max="1000" step="50" value="300"></div>
+                                <div class="option-description">图表中显示的最大数据点数量，到达上限后自动清理最早的数据。</div>
+                            </div>
+                            <div class="checkbox-container"><input type="checkbox" id="autoUpdateChartsCheckbox" checked><label for="autoUpdateChartsCheckbox">自动更新图表</label></div>
+                            <div class="checkbox-container"><input type="checkbox" id="chartAnimationsCheckbox"><label for="chartAnimationsCheckbox">启用图表动画</label></div>
+                            <div class="button-group">
+                                <button id="updateChartsBtn"><i class="fas fa-sync-alt"></i> 立即更新</button>
+                                <button id="clearAllChartsBtn"><i class="fas fa-trash-alt"></i> 清除所有图表数据</button>
+                                <button id="exportChartDataBtn"><i class="fas fa-file-export"></i> 导出图表数据</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-info">
+                        <p><i class="fas fa-info-circle"></i> 图表数据每 <span id="currentChartInterval">1.0</span> 秒更新一次，最多保留最近<span id="currentChartDataPointsLimit">300</span>个数据点。</p>
+                        <p>数据点总数: <span id="chartDataPoints">0</span></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 设置标签页（已包含摄像机设置） -->
+            <div id="settings-tab" class="tab-content">
+                <div class="setting-group">
+                    <h3><i class="fas fa-redo"></i> 重置设置</h3>
+                    <button id="resetAllSettingsBtn" class="apply-height-btn"><i class="fas fa-redo-alt"></i> 重置所有面板参数</button>
+                    <div class="option-description" style="margin-top: 8px;">点击此按钮将重置控制面板和设置面板中的所有参数到默认值。</div>
+                </div>
+
+                <div class="setting-group">
+                    <h3><i class="fas fa-sliders-h"></i> 面板设置</h3>
+                    <div class="setting-item">
+                        <label>面板透明度 <span id="panelOpacityValue" class="setting-value-display">95%</span></label>
+                        <div class="slider-wrapper"><input type="range" id="panelOpacitySlider" min="10" max="100" step="5" value="95"></div>
+                        <div class="option-description">调整控制面板的透明度。</div>
+                    </div>
+                    <div class="setting-item">
+                        <h4><i class="fas fa-arrows-alt-v"></i> 面板高度调整</h4>
+                        <div class="panel-height-preset">
+                            <button class="panel-height-preset-btn active" data-height="40">低</button>
+                            <button class="panel-height-preset-btn" data-height="55">中</button>
+                            <button class="panel-height-preset-btn" data-height="70">高</button>
+                        </div>
+                        <div class="setting-item">
+                            <label>面板高度 <span id="panelHeightValue" class="setting-value-display">55%</span></label>
+                            <div class="slider-wrapper"><input type="range" id="panelHeightSlider" min="30" max="80" step="5" value="55"></div>
+                            <div class="option-description">调整控制面板的高度（占屏幕高度的百分比），点击"应用高度"按钮后生效。</div>
+                        </div>
+                        <button id="applyPanelHeightBtn" class="apply-height-btn" disabled><i class="fas fa-check"></i> 已应用当前高度</button>
+                        <div class="option-description" style="margin-top: 5px;">当前面板高度：<span id="currentPanelHeightText">55% (中)</span></div>
+                    </div>
+                </div>
+
+                <div class="setting-group">
+                    <h3><i class="fas fa-eye"></i> 可视化设置</h3>
+                    <div class="checkbox-container"><input type="checkbox" id="showTrailsCheckbox" checked><label for="showTrailsCheckbox">显示流星轨迹</label></div>
+                    <div class="slider-container">
+                        <label class="control-label">轨迹最长长度 <span id="trailLengthValue" class="setting-value-display">50</span></label>
+                        <div class="slider-wrapper"><input type="range" id="trailLengthSlider" min="10" max="200" step="5" value="50"></div>
+                        <div class="option-description">流星轨迹的最大长度(点数)。</div>
+                    </div>
+                    <div class="checkbox-container"><input type="checkbox" id="showSafetyZoneCheckbox"><label for="showSafetyZoneCheckbox">显示安全区范围</label></div>
+                    <div class="checkbox-container"><input type="checkbox" id="showEventHorizonCheckbox"><label for="showEventHorizonCheckbox">显示黑洞吞噬范围</label></div>
+                    <div class="checkbox-container"><input type="checkbox" id="showGravityGradientCheckbox"><label for="showGravityGradientCheckbox">显示引力渐变效果</label></div>
+                    <div class="checkbox-container"><input type="checkbox" id="showGravitationalLensCheckbox" checked><label for="showGravitationalLensCheckbox">显示引力透镜效果</label></div>
+                    <div class="slider-container">
+                        <label class="control-label">透镜效果强度 <span id="lensStrengthValue" class="setting-value-display">0.3</span></label>
+                        <div class="slider-wrapper"><input type="range" id="lensStrengthSlider" min="0.1" max="1.0" step="0.05" value="0.3"></div>
+                        <div class="option-description">引力透镜效果的强度。</div>
+                    </div>
+                    <div class="slider-container">
+                        <label class="control-label">透镜效果半径 <span id="lensRadiusValue" class="setting-value-display">200</span></label>
+                        <div class="slider-wrapper"><input type="range" id="lensRadiusSlider" min="50" max="500" step="10" value="200"></div>
+                        <div class="option-description">引力透镜效果的影响半径(像素)。</div>
+                    </div>
+                    <div class="checkbox-container"><input type="checkbox" id="showMeteorLabelsCheckbox" checked><label for="showMeteorLabelsCheckbox">显示流星粗略信息</label></div>
+                    <div class="checkbox-container"><input type="checkbox" id="sliderProtectionCheckbox" checked><label for="sliderProtectionCheckbox">启用滑块防误触</label></div>
+                </div>
+
+                <!-- 新增摄像机设置分组 -->
+                <div class="setting-group">
+                    <h3><i class="fas fa-camera"></i> 摄像机设置</h3>
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="cameraMoveCheckbox" checked>
+                        <label for="cameraMoveCheckbox">非观察模式下允许移动摄像机</label>
+                    </div>
+                    <div class="option-description">启用后，即使不在观察模式，也可以通过WASD或拖动移动视图。</div>
+                </div>
+            </div>
+
+            <!-- 性能标签页 -->
+            <div id="performance-tab" class="tab-content">
+                <div class="performance-stats">
+                    <div class="performance-stat"><h4><i class="fas fa-tachometer-alt"></i> 帧率 (FPS)</h4><div><span class="performance-value" id="fpsValue">0</span><span class="performance-unit">FPS</span></div></div>
+                    <div class="performance-stat"><h4><i class="fas fa-memory"></i> 内存使用</h4><div><span class="performance-value" id="memoryUsage">--</span><span class="performance-unit">MB</span></div></div>
+                </div>
+                <div class="stats-group">
+                    <h3><i class="fas fa-microchip"></i> 性能信息</h3>
+                    <div class="stats-container">
+                        <div class="stat-item"><span class="stat-label">画布尺寸</span><span class="stat-value" id="canvasSize">0x0</span></div>
+                        <div class="stat-item"><span class="stat-label">动画状态</span><span class="stat-value" id="animationStatus">运行中</span></div>
+                        <div class="stat-item"><span class="stat-label">效果数量</span><span class="stat-value" id="effectsCount">0</span></div>
+                        <div class="stat-item"><span class="stat-label">渲染延迟</span><span class="stat-value" id="frameTimeValue">0.0</span></div>
+                    </div>
+                </div>
+                <div class="setting-group">
+                    <h3><i class="fas fa-cogs"></i> 性能优化</h3>
+                    <div class="checkbox-container"><input type="checkbox" id="performanceModeCheckbox"><label for="performanceModeCheckbox">性能优先模式</label></div>
+                </div>
+            </div>
+
+            <!-- 日志标签页 -->
+            <div id="logs-tab" class="tab-content">
+                <div class="log-filters-bar" id="logFiltersBar">
+                    <div class="log-filter-tag active" data-type="all">全部<span class="count" id="logCountAll">0</span></div>
+                    <div class="log-filter-tag" data-type="error">错误<span class="count" id="logCountError">0</span></div>
+                    <div class="log-filter-tag" data-type="warning">警告<span class="count" id="logCountWarning">0</span></div>
+                    <div class="log-filter-tag" data-type="info">信息<span class="count" id="logCountInfo">0</span></div>
+                    <div class="log-filter-tag" data-type="debug">调试<span class="count" id="logCountDebug">0</span></div>
+                </div>
+                <div class="log-container" id="logContainer"></div>
+                <div class="empty-message" id="logEmptyMessage" style="display: none;"><i class="fas fa-file-alt"></i><p>当前没有日志记录</p></div>
+                <div class="log-controls">
+                    <button id="clearLogsBtn"><i class="fas fa-trash"></i> 清除日志</button>
+                    <button id="exportLogsBtn"><i class="fas fa-download"></i> 导出日志</button>
+                    <button id="copyAllLogsBtn"><i class="fas fa-copy"></i> 复制全部</button>
+                </div>
+                <div class="setting-group">
+                    <h3><i class="fas fa-filter"></i> 日志设置</h3>
+                    <div class="checkbox-container"><input type="checkbox" id="logErrorsCheckbox" checked><label for="logErrorsCheckbox">记录错误</label></div>
+                    <div class="checkbox-container"><input type="checkbox" id="logWarningsCheckbox" checked><label for="logWarningsCheckbox">记录警告</label></div>
+                    <div class="checkbox-container"><input type="checkbox" id="logInfoCheckbox" checked><label for="logInfoCheckbox">记录信息</label></div>
+                    <div class="checkbox-container"><input type="checkbox" id="logDebugCheckbox"><label for="logDebugCheckbox">记录调试信息</label></div>
+                </div>
+            </div>
+
+            <!-- 关于标签页 -->
+            <div id="about-tab" class="tab-content">
+                <div class="about-section" style="max-height: 60vh; overflow-y: auto; padding-right: 10px;">
+                    <div style="background: rgba(0,20,60,0.4); border-radius: 10px; padding: 15px; margin-bottom: 20px; border-left: 4px solid #8e2de2;">
+                        <h3 style="color:#8e2de2; margin-bottom: 10px;"><i class="fas fa-black-hole"></i> 黑洞吞噬流星模拟器 - 引力透镜版</h3>
+                        <p style="color:#a0c8ff; line-height:1.6;">这是一个专注于视觉效果和引力物理的黑洞模拟器，结合了简化的引力模型和绚丽的视觉特效。您可以调整黑洞参数，观察流星在强引力场中的运动、碰撞、湮灭，甚至见证尘埃聚集形成新的流星。</p>
+                    </div>
+
+                    <div style="background: rgba(30,0,60,0.3); border-radius: 10px; padding: 15px; margin-bottom: 20px;">
+                        <h4 style="color:#aa55ff;"><i class="fas fa-atom"></i> 引力透镜效果</h4>
+                        <p>爱因斯坦广义相对论的重要预言——光线在强引力场中弯曲。本模拟通过扭曲的同心环和彩色光线再现这一现象，强度与半径可调。</p>
+                    </div>
+
+                    <div style="background: rgba(0,30,80,0.3); border-radius: 10px; padding: 15px; margin-bottom: 20px;">
+                        <h4 style="color:#4a9eff;"><i class="fas fa-calculator"></i> 引力计算公式</h4>
+                        <p style="font-family: monospace; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 5px;">
+                            引力加速度 = (引力强度 × 缩放因子) / (距离<sup>衰减指数</sup>)
+                        </p>
+                    </div>
+
+                    <div style="background: linear-gradient(145deg, #001a33, #001122); border-radius: 10px; padding: 15px; margin-bottom: 20px;">
+                        <h4 style="color:#ffaa55;"><i class="fas fa-star"></i> 核心特性</h4>
+                        <ul style="list-style-type: none; padding-left: 0;">
+                            <li style="margin-bottom: 8px;">✨ <strong>凹凸流星</strong> – 每个流星形状随机生成，独一无二</li>
+                            <li style="margin-bottom: 8px;">💥 <strong>真实碰撞</strong> – 吞噬、湮灭、质量转移，尘埃飞溅</li>
+                            <li style="margin-bottom: 8px;">🌌 <strong>尘埃系统</strong> – 尘埃可合并、转化为新流星</li>
+                            <li style="margin-bottom: 8px;">👆 <strong>多种操作</strong> – 点击、长按、滑动画布放置流星</li>
+                            <li style="margin-bottom: 8px;">📊 <strong>可视化图表</strong> – 实时监控流星、性能数据</li>
+                            <li style="margin-bottom: 8px;">⏱️ <strong>时间缩放</strong> – 0.5x ~ 5x 自由调节模拟速度</li>
+                            <li style="margin-bottom: 8px;">⌨️ <strong>键盘快捷键</strong> – 空格暂停，R重置，D引爆</li>
+                            <li style="margin-bottom: 8px;">💾 <strong>存档功能</strong> – 保存/加载模拟状态</li>
+                            <li style="margin-bottom: 8px;">📹 <strong>摄像机系统</strong> – 自由移动视角，聚焦流星</li>
+                        </ul>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
+                        <div style="background: #0a1a2a; border-radius: 8px; padding: 10px;">
+                            <h5 style="color:#4a9eff;"><i class="fas fa-mouse-pointer"></i> 基本操作</h5>
+                            <p style="font-size:0.85rem;">点击画布添加流星<br>长按/滑动连续放置<br>拖动滑块调整参数</p>
+                        </div>
+                        <div style="background: #0a1a2a; border-radius: 8px; padding: 10px;">
+                            <h5 style="color:#ff5555;"><i class="fas fa-bomb"></i> 特殊功能</h5>
+                            <p style="font-size:0.85rem;">引爆按钮摧毁所有流星<br>流星列表查看/管理<br>图表数据分析</p>
+                        </div>
+                    </div>
+
+                    <div style="background: rgba(0,0,0,0.3); border-radius: 10px; padding: 15px; margin-bottom: 20px; border: 1px solid #335588;">
+                        <h4 style="color:#88aaff;"><i class="fas fa-lightbulb"></i> 你知道吗？</h4>
+                        <p>黑洞的“事件视界”是连光也无法逃逸的边界。在模拟中，一旦流星进入黑洞半径，就会触发吞噬特效并消失，同时增加吞噬计数。</p>
+                    </div>
+
+                    <div style="text-align: center; margin-top: 20px; padding-top: 10px; border-top: 1px solid rgba(100,150,255,0.3); color: #88aaff;">
+                        <p>© 2023-2025 黑洞吞噬流星模拟器 · 引力透镜版<br>v3.0 · 摄像机版</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ========== 面板结束 ========== -->
