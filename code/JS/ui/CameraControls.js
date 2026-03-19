@@ -1,3 +1,5 @@
+// code/JS/ui/CameraControls.js
+
 const state = require('../state.js');
 const config = require('../config.js');
 const { addLog } = require('../utils/logger.js');
@@ -9,7 +11,7 @@ const MAX_SCALE = 5.0;
 
 let camera = null;
 let activeKeys = new Set();
-let isDragging = false;          // 是否正在拖动（用于观察模式）
+let isDragging = false;
 let lastDragX = 0, lastDragY = 0;
 let scale = 1.0;
 let initialPinchDistance = null;
@@ -60,8 +62,8 @@ function cleanupCameraControls() {
 function updateCameraControls() {
     if (!camera) return;
     
-    const canMove = config.cameraMoveEnabled || window.observationMode;
-    if (!canMove) return;
+    // 移除了 observationMode，仅由 cameraMoveEnabled 控制
+    if (!config.cameraMoveEnabled) return;
 
     let dx = 0, dy = 0;
     if (activeKeys.has('KeyW')) dy -= MOVE_SPEED;
@@ -89,6 +91,128 @@ function handleKeyUp(e) {
     }
 }
 
+// 触摸处理
+function handleTouchStart(e) {
+    if (!config.cameraMoveEnabled) return;  // 仅由配置控制
+    e.preventDefault();
+
+    if (e.touches.length === 1) {
+        const touch = e.touches[0];
+        const rect = state.canvas.getBoundingClientRect();
+        lastDragX = touch.clientX - rect.left;
+        lastDragY = touch.clientY - rect.top;
+        isDragging = true;
+    } else if (e.touches.length === 2) {
+        const touch1 = e.touches[0];
+        const touch2 = e.touches[1];
+        const dx = touch1.clientX - touch2.clientX;
+        const dy = touch1.clientY - touch2.clientY;
+        initialPinchDistance = Math.hypot(dx, dy);
+        initialPinchScale = camera ? camera.scale : 1.0;
+        isDragging = false;
+    }
+}
+
+function handleTouchMove(e) {
+    if (!config.cameraMoveEnabled) return;
+    e.preventDefault();
+
+    if (e.touches.length === 1 && isDragging) {
+        const touch = e.touches[0];
+        const rect = state.canvas.getBoundingClientRect();
+        const x = touch.clientX - rect.left;
+        const y = touch.clientY - rect.top;
+        
+        const dx = lastDragX - x;
+        const dy = lastDragY - y;
+        camera.moveBy(dx, dy);
+        
+        lastDragX = x;
+        lastDragY = y;
+    } else if (e.touches.length === 2 && initialPinchDistance !== null) {
+        const touch1 = e.touches[0];
+        const touch2 = e.touches[1];
+        const dx = touch1.clientX - touch2.clientX;
+        const dy = touch1.clientY - touch2.clientY;
+        const currentDistance = Math.hypot(dx, dy);
+        const scaleFactor = currentDistance / initialPinchDistance;
+        const newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, initialPinchScale * scaleFactor));
+        camera.setScale(newScale);
+    }
+}
+
+function handleTouchEnd(e) {
+    e.preventDefault();
+    isDragging = false;
+    initialPinchDistance = null;
+}
+
+// 鼠标拖动（仅当 cameraMoveEnabled 为 true 时）
+function handleMouseDown(e) {
+    if (!config.cameraMoveEnabled) return;
+    
+    e.preventDefault();
+    const rect = state.canvas.getBoundingClientRect();
+    lastDragX = e.clientX - rect.left;
+    lastDragY = e.clientY - rect.top;
+    isDragging = true;
+}
+
+function handleMouseMove(e) {
+    if (!isDragging) return;
+    if (!config.cameraMoveEnabled) return;
+    
+    e.preventDefault();
+    const rect = state.canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    const dx = lastDragX - x;
+    const dy = lastDragY - y;
+    camera.moveBy(dx, dy);
+    
+    lastDragX = x;
+    lastDragY = y;
+}
+
+function handleMouseUp(e) {
+    if (!isDragging) return;
+    e.preventDefault();
+    isDragging = false;
+}
+
+// 滚轮缩放（仅当 cameraMoveEnabled 为 true 时）
+function handleWheel(e) {
+    if (!config.cameraMoveEnabled) return;
+    e.preventDefault();
+    
+    const delta = e.deltaY > 0 ? -ZOOM_SPEED : ZOOM_SPEED;
+    scale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, scale + delta));
+    if (camera) camera.setScale(scale);
+    addLog(`缩放: ${scale.toFixed(2)}x`, 'debug');
+}
+
+function getScale() {
+    return scale;
+}
+
+function setScale(newScale) {
+    scale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, newScale));
+    if (camera) camera.setScale(scale);
+}
+
+function isDraggingActive() {
+    return isDragging;
+}
+
+module.exports = {
+    initCameraControls,
+    cleanupCameraControls,
+    updateCameraControls,
+    getScale,
+    setScale,
+    isDraggingActive,
+};
 // 触摸处理（包含单指拖动和双指缩放）
 function handleTouchStart(e) {
     if (!config.cameraMoveEnabled && !window.observationMode) return;
