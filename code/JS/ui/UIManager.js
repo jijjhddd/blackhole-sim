@@ -10,6 +10,7 @@ const Toast = require('./Toast.js');
 let panelOpacity = 95;
 let currentPanelHeight = 55;
 let pendingPanelHeight = 55;
+// 观察模式已移除，保留变量但不再使用
 let observationMode = false;
 
 // ==================== 滑块防误触 ====================
@@ -70,7 +71,10 @@ function resetAllSettings() {
     config.logInfo = true;
     config.logDebug = false;
     config.timeScale = 1.0;
-    config.cameraMoveEnabled = true;
+    config.cameraMoveEnabled = false;      // 默认关闭
+    config.adaptiveCanvas = false;
+    config.canvasWidth = 360;
+    config.canvasHeight = 719;
     
     state.blackHole.radius = config.blackHoleSize;
     
@@ -108,7 +112,10 @@ function updateAllSliders() {
         { id: 'chartDataPointsLimitSlider', value: config.maxChartDataPoints },
         { id: 'panelOpacitySlider', value: panelOpacity },
         { id: 'panelHeightSlider', value: pendingPanelHeight },
-        { id: 'timeScaleSlider', value: config.timeScale }
+        { id: 'timeScaleSlider', value: config.timeScale },
+        // 新增画布尺寸滑块
+        { id: 'canvasWidthSlider', value: config.canvasWidth },
+        { id: 'canvasHeightSlider', value: config.canvasHeight }
     ];
     sliders.forEach(({ id, value }) => {
         const slider = document.getElementById(id);
@@ -156,7 +163,15 @@ function updateAllCheckboxes() {
     const chartAnimations = document.getElementById('chartAnimationsCheckbox');
     if (chartAnimations) chartAnimations.checked = config.chartAnimations;
     const cameraMoveCheckbox = document.getElementById('cameraMoveCheckbox');
-    if (cameraMoveCheckbox) cameraMoveCheckbox.checked = config.cameraMoveEnabled;
+    if (cameraMoveCheckbox) {
+        cameraMoveCheckbox.checked = config.cameraMoveEnabled;
+    }
+    
+    // 新增自适应复选框
+    const adaptiveCanvasCheckbox = document.getElementById('adaptiveCanvasCheckbox');
+    if (adaptiveCanvasCheckbox) {
+        adaptiveCanvasCheckbox.checked = config.adaptiveCanvas;
+    }
 }
 
 function updateBlackHoleProperties() {
@@ -185,7 +200,10 @@ function updateBlackHoleProperties() {
         chartDataPointsLimitValue: config.maxChartDataPoints,
         maxDustParticlesValue: config.maxDustParticles,
         statsUpdateRateValue: '1.0',
-        statsHistorySizeValue: '50'
+        statsHistorySizeValue: '50',
+        // 新增画布尺寸显示
+        canvasWidthValue: config.canvasWidth,
+        canvasHeightValue: config.canvasHeight
     };
     for (const [id, val] of Object.entries(ids)) {
         const el = document.getElementById(id);
@@ -245,37 +263,32 @@ function togglePanel() {
     addLog(collapsed ? '面板折叠' : '面板展开', 'info');
 }
 
+// 观察模式已移除，此函数留空但保留以兼容调用
 function setObservationMode(mode) {
-    observationMode = mode;
-    // 使用静态观察按钮 id="observer-toggle"
-    const eyeBtn = document.getElementById('observer-toggle');
-    if (eyeBtn) {
-        eyeBtn.style.backgroundColor = mode ? '#ffaa55' : '#4a9eff';
-    }
+    // 不做任何操作
 }
 
-/**
- * 初始化眼睛按钮 - 使用 HTML 中已有的静态按钮
- */
-function initEyeButton() {
-    const eyeBtn = document.getElementById('observer-toggle');
-    if (!eyeBtn) return;
-
-    // 添加与昆虫图标一致的样式类（保持风格统一）
-    eyeBtn.classList.add('debug-toggle');
-    eyeBtn.style.bottom = '80px'; // 位于昆虫图标上方
-    eyeBtn.style.backgroundColor = observationMode ? '#ffaa55' : '#4a9eff';
-    
-    // 移除可能存在的旧监听器（通过克隆替换避免重复绑定）
-    const newEyeBtn = eyeBtn.cloneNode(true);
-    eyeBtn.parentNode.replaceChild(newEyeBtn, eyeBtn);
-    
-    newEyeBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        if (window.simulator && window.simulator.toggleObservationMode) {
-            window.simulator.toggleObservationMode();
+// 新增：应用画布尺寸
+function applyCanvasSize() {
+    if (!state.canvas) return;
+    if (config.adaptiveCanvas) {
+        // 如果自适应开启，则调用 resizeCanvas 适应窗口
+        if (window.simulator && window.simulator.resizeCanvas) {
+            window.simulator.resizeCanvas();
         }
-    });
+    } else {
+        // 手动设置固定尺寸
+        state.canvas.width = config.canvasWidth;
+        state.canvas.height = config.canvasHeight;
+        state.blackHole.x = config.canvasWidth / 2;
+        state.blackHole.y = config.canvasHeight / 2;
+        if (window.simulator) {
+            window.simulator.generateStars();
+        }
+        const canvasSizeEl = document.getElementById('canvasSize');
+        if (canvasSizeEl) canvasSizeEl.textContent = `${config.canvasWidth}x${config.canvasHeight}`;
+        addLog(`画布尺寸已应用: ${config.canvasWidth}x${config.canvasHeight}`, 'info');
+    }
 }
 
 function initTabs() {
@@ -409,6 +422,15 @@ function initSliders() {
         },
         v => { const num = parseFloat(v); return isNaN(num) ? '1.0x' : num.toFixed(1) + 'x'; }
     );
+    // 新增画布尺寸滑块
+    bindSlider('canvasWidthSlider', 'canvasWidthValue',
+        (v) => { config.canvasWidth = v; },
+        v => v
+    );
+    bindSlider('canvasHeightSlider', 'canvasHeightValue',
+        (v) => { config.canvasHeight = v; },
+        v => v
+    );
     updateTimeScaleDisplay(config.timeScale);
 }
 
@@ -507,6 +529,20 @@ function initCheckboxes() {
             addLog(`摄像机移动: ${config.cameraMoveEnabled ? '启用' : '禁用'}`, 'info');
         });
         cameraMoveCheckbox.checked = config.cameraMoveEnabled;
+    }
+    
+    // 新增自适应复选框
+    const adaptiveCanvasCheckbox = document.getElementById('adaptiveCanvasCheckbox');
+    if (adaptiveCanvasCheckbox) {
+        adaptiveCanvasCheckbox.addEventListener('change', function(e) {
+            config.adaptiveCanvas = e.target.checked;
+            addLog(`自适应画布: ${e.target.checked ? '开启' : '关闭'}`, 'info');
+            // 如果开启自适应，立即调整画布为窗口大小
+            if (e.target.checked && window.simulator) {
+                window.simulator.resizeCanvas();
+            }
+        });
+        adaptiveCanvasCheckbox.checked = config.adaptiveCanvas;
     }
 }
 
@@ -645,6 +681,14 @@ function initButtons() {
             if (debugInfo) debugInfo.style.display = debugInfo.style.display === 'block' ? 'none' : 'block';
         });
     }
+    
+    // 新增应用画布尺寸按钮
+    const applyCanvasSizeBtn = document.getElementById('applyCanvasSizeBtn');
+    if (applyCanvasSizeBtn) {
+        applyCanvasSizeBtn.addEventListener('click', () => {
+            applyCanvasSize();
+        });
+    }
 }
 
 function initLogFilters() {
@@ -687,7 +731,7 @@ function initUI() {
         initButtons();
         initLogFilters();
         initSliderProtection();
-        initEyeButton(); // 使用静态按钮
+        // 眼睛按钮初始化已移除
         
         updateBlackHoleProperties();
         updatePanelOpacity();
@@ -712,5 +756,6 @@ module.exports = {
     togglePanel,
     applyPanelHeightNow,
     resetAllSettings,
-    setObservationMode
+    setObservationMode,   // 保留但无操作
+    applyCanvasSize       // 导出供外部使用
 };
