@@ -1,0 +1,1103 @@
+/**
+ * 黑洞吞噬流星模拟器 - 引力透镜版
+ * 面板样式文件（控制面板、选项卡、滑块、按钮等）
+ */
+
+/* 底部控制面板容器 */
+#panel-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: 100;
+    transition: all 0.3s ease;
+}
+
+#panel-indicator {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,30,80,0.9);
+    color: #4a9eff;
+    padding: 8px 20px;
+    border-radius: 20px 20px 0 0;
+    font-size: 0.9rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid rgba(100,150,255,0.3);
+    border-bottom: none;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    z-index: 101;
+    user-select: none;
+}
+
+#panel-indicator:hover {
+    background: rgba(0,40,100,0.9);
+}
+
+#panel-indicator i {
+    font-size: 1rem;
+    transition: transform 0.3s ease;
+}
+
+#bottom-panel {
+    width: 100%;
+    background: rgba(0,15,50,0.95);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 -5px 20px rgba(0,0,0,0.8);
+    border-top: 1px solid rgba(100,150,255,0.3);
+    max-height: 70vh;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+#panel-container.collapsed #bottom-panel {
+    max-height: 0 !important;
+    border-top: none;
+    overflow: hidden;
+}
+
+#panel-container.collapsed #panel-indicator i {
+    transform: rotate(180deg);
+}
+
+.panel-header {
+    padding: 0;
+    background: rgba(0,30,80,0.9);
+    border-bottom: 1px solid rgba(100,150,255,0.3);
+}
+
+.tab-container {
+    display: flex;
+    width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.tab-container::-webkit-scrollbar {
+    display: none;
+}
+
+.tab-button {
+    flex: 1;
+    min-width: 70px;
+    padding: 14px 10px;
+    background: transparent;
+    border: none;
+    color: #a0c8ff;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border-bottom: 3px solid transparent;
+    white-space: nowrap;
+}
+
+.tab-button.active {
+    color: #4a9eff;
+    border-bottom-color: #4a9eff;
+    background: rgba(0,40,100,0.5);
+}
+
+.tab-button:hover {
+    background: rgba(100,150,255,0.1);
+}
+
+.tab-button i {
+    font-size: 0.9rem;
+}
+
+.panel-content {
+    padding: 15px;
+    max-height: 55vh;
+    overflow-y: auto;
+    transition: all 0.3s ease;
+}
+
+#panel-container.collapsed .panel-content {
+    max-height: 0 !important;
+    padding: 0;
+    overflow: hidden;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* 子选项卡 */
+.sub-tab-container {
+    display: flex;
+    width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    margin-bottom: 15px;
+    border-bottom: 1px solid rgba(100,150,255,0.2);
+}
+
+.sub-tab-container::-webkit-scrollbar {
+    display: none;
+}
+
+.sub-tab-button {
+    flex: 1;
+    min-width: 80px;
+    padding: 10px 8px;
+    background: transparent;
+    border: none;
+    color: #a0c8ff;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+}
+
+.sub-tab-button.active {
+    color: #8e2de2;
+    border-bottom-color: #8e2de2;
+    background: rgba(142,45,226,0.1);
+}
+
+.sub-tab-button:hover {
+    background: rgba(100,150,255,0.1);
+}
+
+.sub-tab-content {
+    display: none;
+}
+
+.sub-tab-content.active {
+    display: block;
+}
+
+/* 统计卡片 */
+.stats-group {
+    margin-bottom: 18px;
+}
+
+.stats-group h3 {
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+    color: #8e2de2;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid rgba(100,150,255,0.2);
+    padding-bottom: 6px;
+}
+
+.stats-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    background: rgba(0,20,60,0.4);
+    border-radius: 6px;
+    border-left: 3px solid #4a9eff;
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    color: #a0c8ff;
+    margin-bottom: 4px;
+}
+
+.stat-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #4a9eff;
+    text-shadow: 0 0 5px rgba(74,158,255,0.5);
+}
+
+/* 滑块 */
+.control-group, .setting-group, .stats-settings-group {
+    margin-bottom: 18px;
+}
+
+.control-group h3, .setting-group h3, .stats-settings-group h3 {
+    font-size: 1.1rem;
+    margin-bottom: 12px;
+    color: #8e2de2;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid rgba(100,150,255,0.2);
+    padding-bottom: 6px;
+}
+
+.slider-container {
+    margin-bottom: 14px;
+}
+
+.control-label {
+    display: block;
+    margin-bottom: 6px;
+    color: #a0c8ff;
+    font-weight: 500;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+}
+
+.control-value-display, .setting-value-display {
+    background: rgba(0,30,100,0.5);
+    padding: 3px 10px;
+    border-radius: 6px;
+    min-width: 50px;
+    text-align: center;
+    color: #4a9eff;
+    font-weight: bold;
+    font-size: 0.85rem;
+}
+
+input[type="range"] {
+    width: 100%;
+    height: 20px;
+    margin: 8px 0;
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    outline: none;
+    position: relative;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 6px;
+    background: linear-gradient(to right, #001233, #004e92);
+    border-radius: 4px;
+    border: none;
+}
+
+input[type="range"]::-moz-range-track {
+    width: 100%;
+    height: 6px;
+    background: linear-gradient(to right, #001233, #004e92);
+    border-radius: 4px;
+    border: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #4a9eff;
+    cursor: pointer;
+    box-shadow: 0 0 8px rgba(74,158,255,0.8);
+    border: 2px solid white;
+    margin-top: -9px;
+    position: relative;
+    z-index: 10;
+}
+
+input[type="range"]::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #4a9eff;
+    cursor: pointer;
+    box-shadow: 0 0 8px rgba(74,158,255,0.8);
+    border: 2px solid white;
+    position: relative;
+    z-index: 10;
+}
+
+.slider-wrapper {
+    position: relative;
+    width: 100%;
+    height: 20px;
+    display: flex;
+    align-items: center;
+}
+
+.slider-wrapper.locked {
+    opacity: 0.7;
+}
+
+.slider-wrapper.locked input[type="range"] {
+    pointer-events: none;
+}
+
+/* 复选框 */
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+    padding: 6px 0;
+}
+
+.checkbox-container input[type="checkbox"] {
+    margin-right: 8px;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.checkbox-container label {
+    margin-bottom: 0;
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: #a0c8ff;
+}
+
+/* 按钮组 */
+.button-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.button-group-double {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-top: 15px;
+}
+
+button {
+    padding: 10px 14px;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+#addMeteorBtn { background: linear-gradient(to right, #004e92, #0083b0); color: white; }
+#resetBtn { background: linear-gradient(to right, #8e2de2, #4a00e0); color: white; }
+#pauseBtn { background: linear-gradient(to right, #ff8c00, #ff5500); color: white; }
+#clearAllMeteorsBtn { background: linear-gradient(to right, #ff416c, #ff4b2b); color: white; }
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+/* 下拉选择框 */
+.boundary-select-container {
+    margin-bottom: 14px;
+}
+
+.select-wrapper {
+    position: relative;
+    width: 100%;
+    margin-top: 8px;
+}
+
+.select-wrapper select {
+    width: 100%;
+    padding: 10px 12px;
+    background: rgba(0,20,60,0.6);
+    border: 1px solid rgba(100,150,255,0.3);
+    border-radius: 6px;
+    color: #a0c8ff;
+    font-size: 0.85rem;
+    cursor: pointer;
+    appearance: none;
+    outline: none;
+}
+
+.select-wrapper::after {
+    content: '\f078';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #4a9eff;
+    pointer-events: none;
+}
+
+/* 流星列表 */
+.meteor-list-container {
+    max-height: 300px;
+    overflow-y: auto;
+    background: rgba(0,10,30,0.7);
+    border-radius: 6px;
+    padding: 10px;
+    margin-bottom: 15px;
+}
+
+.meteor-list-header {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 0.8fr 1.5fr;
+    padding: 8px 10px;
+    background: rgba(0,30,80,0.5);
+    border-radius: 4px;
+    font-size: 0.75rem;
+    color: #4a9eff;
+    font-weight: 600;
+    margin-bottom: 8px;
+    text-align: center;
+}
+
+.meteor-list-item {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 0.8fr 1.5fr;
+    padding: 8px 10px;
+    background: rgba(0,20,60,0.3);
+    border-radius: 4px;
+    font-size: 0.8rem;
+    margin-bottom: 6px;
+    align-items: center;
+    text-align: center;
+    transition: all 0.3s ease;
+    border-left: 4px solid #4a9eff;
+    cursor: pointer;
+}
+
+.meteor-list-item.consumed {
+    border-left-color: #ff5555;
+    background: rgba(255,0,0,0.1);
+    opacity: 0.7;
+}
+
+.meteor-list-item.removed {
+    border-left-color: #ffaa55;
+    background: rgba(255,170,0,0.1);
+    opacity: 0.5;
+}
+
+.meteor-list-item.highlighted {
+    border-left-color: #ffaa00;
+    background: rgba(255,170,0,0.25);
+    box-shadow: 0 0 15px rgba(255,170,0,0.5);
+}
+
+.meteor-color-indicator {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+.meteor-status {
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.status-active { background: rgba(0,255,0,0.2); color: #55ff55; }
+.status-consumed { background: rgba(255,0,0,0.2); color: #ff5555; }
+.status-removed { background: rgba(255,170,0,0.2); color: #ffaa55; }
+
+.meteor-actions {
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+}
+
+.meteor-action-btn {
+    background: rgba(0,30,80,0.5);
+    border: none;
+    color: #a0c8ff;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.meteor-action-btn:hover {
+    background: rgba(74,158,255,0.3);
+}
+
+.meteor-action-btn.remove {
+    background: rgba(255,65,108,0.2);
+    color: #ff416c;
+}
+
+.meteor-action-btn.remove:hover {
+    background: rgba(255,65,108,0.4);
+}
+
+.meteor-action-btn.show-info {
+    background: rgba(0,100,255,0.2);
+    color: #4a9eff;
+}
+
+.meteor-action-btn.show-info:hover {
+    background: rgba(74,158,255,0.3);
+}
+
+.meteor-list-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.meteor-list-filter {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.filter-btn {
+    background: rgba(0,30,80,0.5);
+    border: 1px solid rgba(100,150,255,0.2);
+    color: #a0c8ff;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.filter-btn.active {
+    background: #4a9eff;
+    color: white;
+    border-color: #4a9eff;
+}
+
+.filter-btn:hover {
+    background: rgba(74,158,255,0.3);
+}
+
+.meteor-list-info {
+    font-size: 0.8rem;
+    color: #a0c8ff;
+    text-align: center;
+    padding: 10px;
+    background: rgba(0,20,60,0.3);
+    border-radius: 6px;
+    margin-top: 10px;
+}
+
+/* 列表显示设置面板 */
+.list-settings {
+    margin: 15px 0;
+    padding: 12px;
+    background: rgba(0,30,80,0.3);
+    border-radius: 8px;
+    border-left: 4px solid #8e2de2;
+}
+
+.list-settings h4 {
+    color: #8e2de2;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 1rem;
+}
+
+.checkbox-group {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+/* 图表 */
+.chart-controls {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: rgba(0,20,60,0.3);
+    border-radius: 8px;
+    border: 1px solid rgba(100,150,255,0.2);
+}
+
+.chart-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.chart-row {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.chart-item {
+    flex: 1;
+    min-width: 300px;
+    background: rgba(0,15,50,0.6);
+    border-radius: 8px;
+    padding: 15px;
+    border: 1px solid rgba(100,150,255,0.2);
+}
+
+.chart-item.full-width {
+    flex: 100%;
+    min-width: 100%;
+}
+
+.chart-item h4 {
+    color: #8e2de2;
+    margin-bottom: 15px;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid rgba(100,150,255,0.2);
+    padding-bottom: 8px;
+}
+
+.chart-wrapper {
+    position: relative;
+    height: 250px;
+    width: 100%;
+}
+
+.chart-info {
+    margin-top: 20px;
+    padding: 15px;
+    background: rgba(0,20,60,0.3);
+    border-radius: 8px;
+    border: 1px solid rgba(100,150,255,0.2);
+    font-size: 0.85rem;
+    color: #a0c8ff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+/* 日志 */
+.log-container {
+    background: rgba(0,10,30,0.7);
+    border-radius: 6px;
+    padding: 10px;
+    max-height: 200px;
+    overflow-y: auto;
+    font-family: 'Courier New', monospace;
+    font-size: 0.8rem;
+    margin-bottom: 15px;
+}
+
+.log-entry {
+    padding: 5px;
+    border-bottom: 1px solid rgba(100,150,255,0.1);
+    color: #a0c8ff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.log-entry.error { color: #ff5555; border-left: 3px solid #ff5555; padding-left: 10px; }
+.log-entry.warning { color: #ffaa55; border-left: 3px solid #ffaa55; padding-left: 10px; }
+.log-entry.info { color: #55aaff; border-left: 3px solid #55aaff; padding-left: 10px; }
+.log-entry.debug { color: #55ff55; border-left: 3px solid #55ff55; padding-left: 10px; font-style: italic; }
+
+.log-timestamp {
+    color: #88aaff;
+    font-size: 0.7rem;
+    margin-right: 8px;
+    min-width: 70px;
+}
+
+.log-filters-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 15px;
+    padding: 10px;
+    background: rgba(0,20,60,0.4);
+    border-radius: 6px;
+    align-items: center;
+}
+
+.log-filter-tag {
+    background: rgba(0,30,80,0.5);
+    border: 1px solid rgba(100,150,255,0.2);
+    color: #a0c8ff;
+    padding: 4px 10px;
+    border-radius: 15px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.log-filter-tag.active {
+    background: #4a9eff;
+    color: white;
+    border-color: #4a9eff;
+}
+
+.log-filter-tag .count {
+    background: rgba(0,0,0,0.3);
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-size: 0.7rem;
+}
+
+/* 空状态 */
+.empty-message {
+    text-align: center;
+    padding: 30px 20px;
+    color: #88aaff;
+    font-size: 0.9rem;
+    background: rgba(0,20,60,0.2);
+    border-radius: 8px;
+    margin: 10px 0;
+}
+
+.empty-message i {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+    color: #4a9eff;
+    display: block;
+}
+
+/* 性能统计 */
+.performance-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.performance-stat {
+    background: rgba(0,20,60,0.4);
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+    border-left: 3px solid #8e2de2;
+}
+
+.performance-stat h4 {
+    font-size: 0.9rem;
+    color: #8e2de2;
+    margin-bottom: 8px;
+}
+
+.performance-value {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #4a9eff;
+}
+
+.performance-unit {
+    font-size: 0.8rem;
+    color: #a0c8ff;
+    margin-left: 3px;
+}
+
+/* 面板高度预设 */
+.panel-height-preset {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.panel-height-preset-btn {
+    background: rgba(0,30,80,0.5);
+    border: 1px solid rgba(100,150,255,0.2);
+    color: #a0c8ff;
+    padding: 8px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.panel-height-preset-btn.active {
+    background: #8e2de2;
+    color: white;
+    border-color: #8e2de2;
+    box-shadow: 0 0 6px rgba(142,45,226,0.5);
+}
+
+.panel-height-preset-btn:hover {
+    background: rgba(142,45,226,0.3);
+}
+
+.apply-height-btn {
+    background: linear-gradient(to right, #8e2de2, #4a00e0);
+    color: white;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.apply-height-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+/* 流星详情模态框 */
+.meteor-detail-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,15,50,0.95);
+    backdrop-filter: blur(10px);
+    padding: 20px;
+    border-radius: 10px;
+    z-index: 1000;
+    width: 95%;
+    max-width: 900px;
+    max-height: 80vh;
+    overflow-y: auto;
+    display: none;
+    border: 1px solid rgba(100,150,255,0.3);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.8);
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    z-index: 999;
+    display: none;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(100,150,255,0.3);
+}
+
+.modal-title {
+    font-size: 1.2rem;
+    color: #8e2de2;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.close-modal {
+    background: none;
+    border: none;
+    color: #a0c8ff;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.close-modal:hover {
+    background: rgba(255,255,255,0.1);
+}
+
+.modal-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.modal-detail-item {
+    margin-bottom: 10px;
+}
+
+.modal-detail-label {
+    font-size: 0.8rem;
+    color: #a0c8ff;
+    margin-bottom: 3px;
+}
+
+.modal-detail-value {
+    font-size: 0.9rem;
+    color: #4a9eff;
+    font-weight: 600;
+    background: rgba(0,30,100,0.3);
+    padding: 5px 10px;
+    border-radius: 4px;
+    word-break: break-all;
+}
+
+.modal-detail-value.color {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    justify-content: flex-end;
+}
+
+.meteor-detail-tabs {
+    display: flex;
+    width: 100%;
+    border-bottom: 1px solid rgba(100,150,255,0.2);
+    margin-bottom: 15px;
+}
+
+.meteor-detail-tab {
+    flex: 1;
+    padding: 12px 10px;
+    background: transparent;
+    border: none;
+    color: #a0c8ff;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border-bottom: 2px solid transparent;
+}
+
+.meteor-detail-tab.active {
+    color: #8e2de2;
+    border-bottom-color: #8e2de2;
+    background: rgba(142,45,226,0.1);
+}
+
+.meteor-detail-tab:hover {
+    background: rgba(100,150,255,0.1);
+}
+
+.meteor-detail-content {
+    display: none;
+    min-height: 300px;
+}
+
+.meteor-detail-content.active {
+    display: block;
+}
+
+.meteor-detail-charts {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.meteor-chart-item {
+    background: rgba(0,15,50,0.6);
+    border-radius: 8px;
+    padding: 15px;
+    border: 1px solid rgba(100,150,255,0.2);
+}
+
+.meteor-chart-item h4 {
+    color: #8e2de2;
+    margin-bottom: 15px;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid rgba(100,150,255,0.2);
+    padding-bottom: 8px;
+}
+
+.meteor-chart-wrapper {
+    position: relative;
+    height: 200px;
+    width: 100%;
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+    .stats-container {
+        grid-template-columns: 1fr;
+    }
+    .panel-content {
+        max-height: 45vh;
+        padding: 12px;
+    }
+    .tab-button {
+        font-size: 0.8rem;
+        padding: 12px 6px;
+        min-width: 60px;
+    }
+    .performance-stats {
+        grid-template-columns: 1fr;
+    }
+    .button-group, .button-group-double {
+        grid-template-columns: 1fr;
+    }
+    .meteor-list-header,
+    .meteor-list-item {
+        grid-template-columns: 1fr 0.8fr 0.8fr 0.7fr 1.5fr;
+        font-size: 0.7rem;
+    }
+    .modal-body {
+        grid-template-columns: 1fr;
+    }
+    .chart-row {
+        flex-direction: column;
+    }
+    .chart-item {
+        min-width: 100%;
+    }
+    .chart-wrapper {
+        height: 200px;
+    }
+    .meteor-detail-charts {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-height: 700px) {
+    .panel-content {
+        max-height: 35vh;
+    }
+    #bottom-panel {
+        max-height: 60vh;
+    }
+}
+
+/* 工具类 */
+.option-description {
+    font-size: 0.75rem;
+    color: #88aaff;
+    margin-top: 4px;
+    line-height: 1.3;
+    padding-left: 2px;
+}
+
+.highlight-glow {
+    filter: drop-shadow(0 0 10px #ffaa55) drop-shadow(0 0 20px #ff5500);
+  }
