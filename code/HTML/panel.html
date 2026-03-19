@@ -1,4 +1,3 @@
-
 <!-- ========== 底部控制面板 ========== -->
 <div id="panel-container">
     <div id="panel-indicator">
@@ -364,7 +363,7 @@
                 </div>
             </div>
 
-            <!-- 设置标签页（已包含摄像机设置） -->
+            <!-- 设置标签页（已包含摄像机设置和画布尺寸控制） -->
             <div id="settings-tab" class="tab-content">
                 <div class="setting-group">
                     <h3><i class="fas fa-redo"></i> 重置设置</h3>
@@ -422,14 +421,33 @@
                     <div class="checkbox-container"><input type="checkbox" id="sliderProtectionCheckbox" checked><label for="sliderProtectionCheckbox">启用滑块防误触</label></div>
                 </div>
 
-                <!-- 新增摄像机设置分组 -->
+                <!-- 摄像机设置分组（更新描述，移除观察模式字样） -->
                 <div class="setting-group">
                     <h3><i class="fas fa-camera"></i> 摄像机设置</h3>
                     <div class="checkbox-container">
-                        <input type="checkbox" id="cameraMoveCheckbox" checked>
-                        <label for="cameraMoveCheckbox">非观察模式下允许移动摄像机</label>
+                        <input type="checkbox" id="cameraMoveCheckbox">
+                        <label for="cameraMoveCheckbox">允许移动摄像机（通过WASD或拖动）</label>
                     </div>
-                    <div class="option-description">启用后，即使不在观察模式，也可以通过WASD或拖动移动视图。</div>
+                    <div class="option-description">启用后，可以使用WASD键或鼠标拖动来平移视图，滚轮缩放。</div>
+                </div>
+
+                <!-- ========== 新增画布尺寸控制 ========== -->
+                <div class="setting-group">
+                    <h3><i class="fas fa-expand-arrows-alt"></i> 画布尺寸</h3>
+                    <div class="setting-item">
+                        <label>宽度 <span id="canvasWidthValue" class="setting-value-display">360</span></label>
+                        <div class="slider-wrapper"><input type="range" id="canvasWidthSlider" min="200" max="1920" step="10" value="360"></div>
+                    </div>
+                    <div class="setting-item">
+                        <label>高度 <span id="canvasHeightValue" class="setting-value-display">719</span></label>
+                        <div class="slider-wrapper"><input type="range" id="canvasHeightSlider" min="200" max="1080" step="10" value="719"></div>
+                    </div>
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="adaptiveCanvasCheckbox">
+                        <label for="adaptiveCanvasCheckbox">自适应窗口大小（忽略上述尺寸）</label>
+                    </div>
+                    <button id="applyCanvasSizeBtn" class="apply-height-btn"><i class="fas fa-check"></i> 应用画布尺寸</button>
+                    <div class="option-description">修改宽高后需点击“应用”生效；自适应开启后自动跟随窗口大小。</div>
                 </div>
             </div>
 
