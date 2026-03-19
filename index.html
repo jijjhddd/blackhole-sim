@@ -1,0 +1,419 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>黑洞吞噬流星模拟器 - 引力透镜版</title>
+    <!-- 外部样式 -->
+    <link rel="stylesheet" href="code/CSS/style.css">
+    <link rel="stylesheet" href="code/CSS/panel.css">
+    <!-- Font Awesome (图标库) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- ========== 内联核心错误处理 ========== -->
+    <script>
+        (function() {
+            const originalOnError = window.onerror;
+            const originalOnUnhandledRejection = window.onunhandledrejection;
+            
+            window.__CORE_ERRORS = [];
+            
+            function showCoreError(error, errorInfo = '') {
+                try {
+                    console.error('核心错误:', error, errorInfo);
+                    
+                    window.__CORE_ERRORS.push({
+                        time: new Date().toISOString(),
+                        error: error?.toString() || '未知错误',
+                        info: errorInfo
+                    });
+                    
+                    const errorModal = document.getElementById('errorModal');
+                    const errorMessage = document.getElementById('errorMessage');
+                    
+                    if (errorModal && errorMessage) {
+                        let errorText = `=== 核心错误 ===\n\n`;
+                        errorText += `错误信息: ${error?.message || error?.toString() || '未知错误'}\n\n`;
+                        if (error?.stack) errorText += `堆栈:\n${error.stack}\n\n`;
+                        if (errorInfo) errorText += `附加信息:\n${errorInfo}\n\n`;
+                        errorText += `时间: ${new Date().toLocaleString()}`;
+                        
+                        errorMessage.textContent = errorText;
+                        errorModal.style.display = 'flex';
+                    }
+                } catch (e) {
+                    console.error('显示核心错误时出错:', e);
+                }
+            }
+            
+            window.onerror = function(message, source, lineno, colno, error) {
+                showCoreError(error || new Error(message), `文件: ${source}, 行: ${lineno}, 列: ${colno}`);
+                if (originalOnError) originalOnError.call(this, message, source, lineno, colno, error);
+                return true;
+            };
+            
+            window.onunhandledrejection = function(event) {
+                showCoreError(event.reason || new Error('未处理的Promise拒绝'), '未处理的Promise拒绝');
+                if (originalOnUnhandledRejection) originalOnUnhandledRejection.call(this, event);
+                event.preventDefault();
+            };
+            
+            window.showCoreError = showCoreError;
+            window.__GET_CORE_ERRORS = () => window.__CORE_ERRORS;
+            
+            console.log('核心错误处理已加载');
+        })();
+    </script>
+    
+    <!-- 加载屏幕样式 -->
+    <style>
+        .loading-log { width:300px; height:100px; background:rgba(0,0,0,0.6); border:1px solid #4a9eff; border-radius:4px; margin-top:15px; padding:5px; overflow-y:auto; font-size:0.8rem; color:#a0c8ff; text-align:left; font-family:'Courier New', monospace; }
+        .loading-log-entry { border-bottom:1px solid rgba(100,150,255,0.2); padding:2px 0; }
+        .loading-percent { color:#4a9eff; font-weight:bold; margin-left:10px; }
+        /* 观察者模式图标样式 */
+        #observer-toggle {
+            position: fixed;
+            bottom: 70px;
+            right: 20px;
+            width: 44px;
+            height: 44px;
+            background: rgba(0,30,80,0.95);
+            color: #4a9eff;
+            border: 1px solid rgba(100,150,255,0.5);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10001;
+            font-size: 1.3rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            transition: all 0.2s ease;
+        }
+        #observer-toggle:hover {
+            background: rgba(0,50,120,0.95);
+            transform: scale(1.1);
+        }
+        #observer-toggle.active {
+            background: rgba(142,45,226,0.95);
+            color: white;
+            border-color: #8e2de2;
+        }
+        /* 精简控制面板 */
+        #compact-panel {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,15,50,0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            padding: 8px 16px;
+            display: flex;
+            gap: 20px;
+            border: 1px solid rgba(100,150,255,0.3);
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.5);
+            z-index: 10002;
+            transition: all 0.3s ease;
+        }
+        .compact-panel-btn {
+            background: transparent;
+            border: none;
+            color: #a0c8ff;
+            font-size: 1.1rem;
+            padding: 8px;
+            cursor: pointer;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        .compact-panel-btn:hover {
+            background: rgba(100,150,255,0.2);
+            color: #4a9eff;
+        }
+        .compact-panel-btn.active {
+            color: #4a9eff;
+            background: rgba(74,158,255,0.2);
+        }
+        /* 观察者模式下的画布拖动提示 */
+        #drag-hint {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            color: #a0c8ff;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            border: 1px solid #4a9eff;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            white-space: nowrap;
+        }
+        #drag-hint.visible {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <!-- ========== 加载屏幕 ========== -->
+    <div id="loadingScreen" class="loading-screen">
+        <div class="loading-spinner"></div>
+        <div class="loading-text" id="loadingText">正在初始化黑洞模拟器...</div>
+        <div class="loading-progress">
+            <div class="loadingProgressBar" id="loadingProgress"></div>
+        </div>
+        <div style="margin-top: 10px; color: #a0c8ff;">
+            <span id="loadingPercent">0%</span>
+        </div>
+        <div id="loadingLog" class="loading-log"></div>
+    </div>
+
+    <!-- ========== 严重错误模态框 ========== -->
+    <div id="errorModal" class="error-modal">
+        <div class="error-content">
+            <div class="error-header">
+                <i class="fas fa-exclamation-triangle"></i>
+                <div>
+                    <h2>严重错误 - 模拟器无法运行</h2>
+                    <p style="color: #ffcc99; font-size: 0.9rem; margin-top: 5px;">黑洞模拟器遇到了无法恢复的错误</p>
+                </div>
+            </div>
+            <p style="color: white; margin-bottom: 15px; line-height: 1.5;">黑洞模拟器遇到了严重错误，无法继续运行。请复制以下错误信息并联系开发者：</p>
+            <div class="error-message" id="errorMessage"></div>
+            <div class="error-info">
+                <p><i class="fas fa-lightbulb"></i> <strong>建议的操作：</strong></p>
+                <ol style="margin-left: 20px; margin-top: 10px;">
+                    <li>复制错误信息并联系开发者</li>
+                    <li>尝试刷新页面重新启动模拟器</li>
+                    <li>检查浏览器控制台 (F12) 查看详细错误</li>
+                </ol>
+            </div>
+            <div class="error-actions">
+                <button id="copyErrorBtn" class="error-copy-btn"><i class="fas fa-copy"></i> 复制错误信息</button>
+                <button id="refreshErrorBtn" class="error-refresh-btn"><i class="fas fa-redo"></i> 刷新页面</button>
+                <button id="closeErrorBtn" class="error-close-btn"><i class="fas fa-times"></i> 关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== 调试信息 ========== -->
+    <div id="debugInfo" class="debug-info"></div>
+
+    <!-- ========== 观察者模式切换按钮 ========== -->
+    <div id="observer-toggle" title="切换观察者模式">
+        <i class="fas fa-eye"></i>
+    </div>
+
+    <!-- ========== 调试按钮 ========== -->
+    <div id="debugToggle" class="debug-toggle" title="显示/隐藏调试信息">
+        <i class="fas fa-bug"></i>
+    </div>
+
+    <!-- ========== 画布拖动提示 ========== -->
+    <div id="drag-hint">
+        <i class="fas fa-arrows-alt"></i> 按住拖动/WASD移动视图
+    </div>
+
+    <!-- ========== 精简控制面板 ========== -->
+    <div id="compact-panel" style="display: none;">
+        <button class="compact-panel-btn" data-tab="stats"><i class="fas fa-chart-bar"></i></button>
+        <button class="compact-panel-btn" data-tab="charts"><i class="fas fa-chart-line"></i></button>
+        <button class="compact-panel-btn" data-tab="performance"><i class="fas fa-tachometer-alt"></i></button>
+        <button class="compact-panel-btn" data-tab="logs"><i class="fas fa-file-alt"></i></button>
+        <button class="compact-panel-btn" data-tab="about"><i class="fas fa-info-circle"></i></button>
+    </div>
+
+    <!-- ========== 游戏画布 ========== -->
+    <div id="game-container">
+        <canvas id="blackHoleCanvas"></canvas>
+    </div>
+
+    <!-- ========== 控制面板容器（将由 panel.html 填充） ========== -->
+    <div id="panel-container-root"></div>
+
+    <!-- ========== 滚动提示 ========== -->
+    <div class="scroll-hint" id="scrollHint" style="display: none;">
+        <i class="fas fa-arrow-down"></i>
+        <span>向下滚动查看详细信息</span>
+    </div>
+
+    <!-- ========== 左侧提示浮层 ========== -->
+    <div class="hint" style="display: none;">
+        <p><i class="fas fa-mouse-pointer"></i> 点击底部选项卡切换面板</p>
+        <p><i class="fas fa-arrows-alt"></i> 点击画布任意位置添加流星</p>
+        <p><i class="fas fa-list"></i> 新增流星列表功能，可查看所有流星状态</p>
+        <p><i class="fas fa-meteor"></i> 点击流星查看详细信息</p>
+        <p><i class="fas fa-long-arrow-alt-down"></i> 长按或滑动画布快速放置流星</p>
+        <p><i class="fas fa-chart-line"></i> 新增图表功能，可视化分析模拟数据</p>
+        <p><i class="fas fa-bomb"></i> 新增“引爆所有流星”按钮</p>
+    </div>
+
+    <!-- ========== 冷却指示器 ========== -->
+    <div class="cooldown-indicator" id="cooldownIndicator">冷却中...</div>
+
+    <!-- ========== 流星详情模态框 ========== -->
+    <div class="modal-overlay" id="meteorDetailOverlay"></div>
+    <div class="meteor-detail-modal" id="meteorDetailModal">
+        <div class="modal-header">
+            <div class="modal-title"><i class="fas fa-meteor"></i><span id="modalMeteorTitle">流星详情</span></div>
+            <button class="close-modal" id="closeMeteorModal"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="meteor-detail-tabs">
+            <button class="meteor-detail-tab active" data-tab="meteor-stats"><i class="fas fa-chart-bar"></i> 统计数据</button>
+            <button class="meteor-detail-tab" data-tab="meteor-charts"><i class="fas fa-chart-line"></i> 图表分析</button>
+        </div>
+        <div id="meteor-stats-content" class="meteor-detail-content active">
+            <div class="modal-body" id="modalMeteorBody"></div>
+        </div>
+        <div id="meteor-charts-content" class="meteor-detail-content">
+            <div class="meteor-detail-charts">
+                <div class="meteor-chart-item"><h4><i class="fas fa-tachometer-alt"></i> 速度变化</h4><div class="meteor-chart-wrapper"><canvas id="meteorSpeedDetailChart"></canvas></div></div>
+                <div class="meteor-chart-item"><h4><i class="fas fa-ruler-combined"></i> 距离黑洞变化</h4><div class="meteor-chart-wrapper"><canvas id="meteorDistanceChart"></canvas></div></div>
+                <div class="meteor-chart-item"><h4><i class="fas fa-compress-alt"></i> X方向运动</h4><div class="meteor-chart-wrapper"><canvas id="meteorXPositionChart"></canvas></div></div>
+                <div class="meteor-chart-item"><h4><i class="fas fa-compress-alt"></i> Y方向运动</h4><div class="meteor-chart-wrapper"><canvas id="meteorYPositionChart"></canvas></div></div>
+                <div class="meteor-chart-item"><h4><i class="fas fa-weight-hanging"></i> 质量变化</h4><div class="meteor-chart-wrapper"><canvas id="meteorMassChart"></canvas></div></div>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button id="showMeteorInfoBtn" class="meteor-action-btn show-info"><i class="fas fa-info-circle"></i> 显示信息</button>
+            <button id="highlightMeteorBtn" class="meteor-action-btn"><i class="fas fa-star"></i> 高亮流星</button>
+            <button id="destroyMeteorBtn" class="meteor-action-btn"><i class="fas fa-bomb"></i> 摧毁流星</button>
+            <button id="removeMeteorFromListBtn" class="meteor-action-btn remove"><i class="fas fa-trash"></i> 删除此流星</button>
+            <button id="closeMeteorDetailBtn" class="meteor-action-btn"><i class="fas fa-times"></i> 关闭</button>
+        </div>
+    </div>
+
+    <!-- ========== 流星信息悬浮标签 ========== -->
+    <div class="meteor-label" id="meteorLabel"></div>
+
+    <!-- ========== 加载管理脚本 ========== -->
+    <script>
+        (function() {
+            const loadingScreen = document.getElementById('loadingScreen');
+            const progressBar = document.getElementById('loadingProgress');
+            const loadingText = document.getElementById('loadingText');
+            const loadingPercentSpan = document.getElementById('loadingPercent');
+            const loadingLogContainer = document.getElementById('loadingLog');
+
+            if (!loadingScreen || !progressBar || !loadingText || !loadingPercentSpan || !loadingLogContainer) return;
+
+            window.updateLoadingProgress = function(percent, message) {
+                if (percent < 0) percent = 0;
+                if (percent > 100) percent = 100;
+                progressBar.style.width = percent + '%';
+                if (loadingPercentSpan) loadingPercentSpan.textContent = percent + '%';
+                if (message && loadingText) loadingText.textContent = message;
+            };
+
+            window.addLoadingLog = function(message) {
+                const entry = document.createElement('div');
+                entry.className = 'loading-log-entry';
+                entry.textContent = '[' + new Date().toLocaleTimeString() + '] ' + message;
+                loadingLogContainer.appendChild(entry);
+                loadingLogContainer.scrollTop = loadingLogContainer.scrollHeight;
+            };
+
+            window.finishLoading = function() {
+                document.fonts.ready.then(() => {
+                    updateLoadingProgress(100, '启动完成！');
+                    addLoadingLog('字体加载完成，模拟器已就绪');
+                    setTimeout(() => {
+                        loadingScreen.style.opacity = '0';
+                        setTimeout(() => {
+                            loadingScreen.style.display = 'none';
+                        }, 500);
+                    }, 800);
+                }).catch(() => {
+                    updateLoadingProgress(100, '启动完成！');
+                    addLoadingLog('模拟器已就绪');
+                    setTimeout(() => {
+                        loadingScreen.style.opacity = '0';
+                        setTimeout(() => {
+                            loadingScreen.style.display = 'none';
+                        }, 500);
+                    }, 800);
+                });
+            };
+        })();
+    </script>
+
+    <!-- ========== 错误模态框按钮事件绑定 ========== -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const copyBtn = document.getElementById('copyErrorBtn');
+            const refreshBtn = document.getElementById('refreshErrorBtn');
+            const closeBtn = document.getElementById('closeErrorBtn');
+            
+            if (copyBtn) {
+                copyBtn.addEventListener('click', function() {
+                    const text = document.getElementById('errorMessage').textContent;
+                    navigator.clipboard.writeText(text).catch(() => {
+                        const ta = document.createElement('textarea');
+                        ta.value = text;
+                        document.body.appendChild(ta);
+                        ta.select();
+                        document.execCommand('copy');
+                        ta.remove();
+                    });
+                });
+            }
+            
+            if (refreshBtn) {
+                refreshBtn.addEventListener('click', () => location.reload());
+            }
+            
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => {
+                    document.getElementById('errorModal').style.display = 'none';
+                });
+            }
+        });
+    </script>
+
+    <!-- ========== 动态加载面板 HTML ========== -->
+    <script>
+        (function() {
+            document.addEventListener('DOMContentLoaded', function() {
+                fetch('code/HTML/panel.html')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('无法加载面板文件');
+                        }
+                        return response.text();
+                    })
+                    .then(html => {
+                        const container = document.getElementById('panel-container-root');
+                        if (container) {
+                            container.innerHTML = html;
+                        }
+                        const script = document.createElement('script');
+                        script.src = 'dist/bundle.js';
+                        script.onload = function() {
+                            console.log('主脚本加载完成');
+                        };
+                        script.onerror = function() {
+                            console.error('主脚本加载失败');
+                        };
+                        document.body.appendChild(script);
+                    })
+                    .catch(error => {
+                        console.error('加载面板失败:', error);
+                        const container = document.getElementById('panel-container-root');
+                        if (container) {
+                            container.innerHTML = '<div style="color:red; text-align:center; padding:20px;">面板加载失败，请刷新重试</div>';
+                        }
+                    });
+            });
+        })();
+    </script>
+</body>
+</html>
