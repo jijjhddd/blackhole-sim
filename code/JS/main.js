@@ -14,7 +14,7 @@ const addLog = logger.addLog;
 const initLogger = logger.initLogger;
 
 const { initModuleErrorHandlers, showCriticalError } = require('./utils/errorHandler.js');
-const { initUI, updateBlackHoleProperties, togglePanel, setObservationMode } = require('./ui/UIManager.js');
+const { initUI, updateBlackHoleProperties, togglePanel, setObservationMode, applyCanvasSize } = require('./ui/UIManager.js');
 const { updateStats, setStartTime, incrementCreatedMeteor, resetStats, exportStats } = require('./statistics.js');
 const { setMousePosition, updateMeteorLabel, showMeteorInfo, hideMeteorLabel } = require('./ui/Labels.js');
 
@@ -48,7 +48,6 @@ const Toast = require('./ui/Toast.js');
 
 // 引入摄像机模块
 const Camera = require('./physics/Camera.js');
-// 修改点1：增加 isDraggingActive 的导入
 const { initCameraControls, cleanupCameraControls, updateCameraControls, getScale, setScale, isDraggingActive } = require('./ui/CameraControls.js');
 
 // 立即开始预加载 Chart.js
@@ -213,8 +212,6 @@ class BlackHoleSimulator {
         this.camera = new Camera();
         window.camera = this.camera;
         
-        window.observationMode = false;
-        
         // 绑定方法
         this.generateStars = this.generateStars.bind(this);
         this.resizeCanvas = this.resizeCanvas.bind(this);
@@ -245,8 +242,7 @@ class BlackHoleSimulator {
         this.copySave = this.copySave.bind(this);
         this.renameSave = this.renameSave.bind(this);
         
-        // 摄像机相关
-        this.toggleObservationMode = this.toggleObservationMode.bind(this);
+        // 摄像机相关（移除观察模式，保留跟随和重置）
         this.followMeteor = this.followMeteor.bind(this);
         this.resetCamera = this.resetCamera.bind(this);
         
@@ -257,7 +253,7 @@ class BlackHoleSimulator {
         this.start();
     }
     
-    // 获取当前状态（同之前）
+    // 获取当前状态
     getCurrentState() {
         return {
             version: '3.0',
@@ -300,7 +296,10 @@ class BlackHoleSimulator {
                 logInfo: config.logInfo,
                 logDebug: config.logDebug,
                 timeScale: config.timeScale,
-                cameraMoveEnabled: config.cameraMoveEnabled
+                cameraMoveEnabled: config.cameraMoveEnabled,
+                adaptiveCanvas: config.adaptiveCanvas,
+                canvasWidth: config.canvasWidth,
+                canvasHeight: config.canvasHeight
             },
             meteors: state.meteors.map(m => ({
                 x: m.x, y: m.y,
@@ -344,7 +343,7 @@ class BlackHoleSimulator {
         };
     }
     
-    // 保存状态（同之前）
+    // 保存状态
     async saveState(name = null) {
         try {
             const stateData = this.getCurrentState();
@@ -370,7 +369,7 @@ class BlackHoleSimulator {
         }
     }
     
-    // 加载状态（同之前）
+    // 加载状态
     async loadState(name) {
         if (!name) {
             addLog('请选择要加载的存档', 'warning');
@@ -593,23 +592,6 @@ class BlackHoleSimulator {
         }
     }
     
-    // 切换观察模式
-    toggleObservationMode() {
-        window.observationMode = !window.observationMode;
-        setObservationMode(window.observationMode);
-        if (window.observationMode) {
-            addLog('进入观察模式', 'info');
-            Toast.showInfo('观察模式已开启，可拖动/WASD移动视图，滚轮缩放');
-        } else {
-            addLog('退出观察模式', 'info');
-            Toast.showInfo('观察模式已关闭');
-        }
-        const eyeBtn = document.getElementById('observer-toggle');
-        if (eyeBtn) {
-            eyeBtn.style.backgroundColor = window.observationMode ? '#ffaa55' : '#4a9eff';
-        }
-    }
-    
     // 跟随流星
     followMeteor(meteorId) {
         const meteor = state.meteors.find(m => m.listId === meteorId);
@@ -743,8 +725,22 @@ class BlackHoleSimulator {
             state.setCanvas(canvas);
             state.setCtx(ctx);
             
-            this.resizeCanvas();
-            window.addEventListener('resize', this.resizeCanvas);
+            // 根据配置设置初始尺寸
+            if (config.adaptiveCanvas) {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            } else {
+                canvas.width = config.canvasWidth;
+                canvas.height = config.canvasHeight;
+            }
+            state.blackHole.x = canvas.width / 2;
+            state.blackHole.y = canvas.height / 2;
+            this.generateStars();
+            
+            if (config.adaptiveCanvas) {
+                window.addEventListener('resize', this.resizeCanvas);
+            }
+            
             canvas.addEventListener('click', this.handleCanvasClick);
             canvas.addEventListener('mousemove', this.handleMouseMove);
             
@@ -801,6 +797,7 @@ class BlackHoleSimulator {
                 <div>页面可见: ${!document.hidden ? '是' : '否'}</div>
                 <div>边界模式: ${boundaryText(config.boundaryMode)}</div>
                 <div>摄像机: (${Math.round(this.camera.offsetX)}, ${Math.round(this.camera.offsetY)}) 缩放: ${this.camera.scale.toFixed(2)}x</div>
+                <div>摄像机移动: ${config.cameraMoveEnabled ? '启用' : '禁用'}</div>
             </div>
         `;
     }
@@ -814,9 +811,8 @@ class BlackHoleSimulator {
         window.mouseY = y;
     }
     
-    // 修改点2：在 handleCanvasClick 中添加更新和拖动判断
     handleCanvasClick(event) {
-        // 如果正在拖动（观察模式下），忽略点击放置
+        // 如果正在拖动，忽略点击放置
         if (typeof isDraggingActive === 'function' && isDraggingActive()) {
             return;
         }
@@ -827,7 +823,7 @@ class BlackHoleSimulator {
             return;
         }
         
-        // 确保摄像机状态最新，防止坐标转换滞后
+        // 确保摄像机状态最新
         this.camera.update();
         
         const rect = state.canvas.getBoundingClientRect();
@@ -889,6 +885,8 @@ class BlackHoleSimulator {
     }
     
     resizeCanvas() {
+        if (!config.adaptiveCanvas) return; // 自适应关闭时不调整
+        
         try {
             const canvas = state.canvas;
             if (!canvas) return;
@@ -1172,9 +1170,9 @@ try {
     window.simulator.deleteAllSaves = simulator.deleteAllSaves.bind(simulator);
     window.simulator.copySave = simulator.copySave.bind(simulator);
     window.simulator.renameSave = simulator.renameSave.bind(simulator);
-    window.simulator.toggleObservationMode = simulator.toggleObservationMode.bind(simulator);
     window.simulator.followMeteor = simulator.followMeteor.bind(simulator);
     window.simulator.resetCamera = simulator.resetCamera.bind(simulator);
+    // 观察模式相关方法已移除
     
     window.destroyMeteor = destroyMeteor;
     window.detonateAllMeteors = detonateAllMeteors;
