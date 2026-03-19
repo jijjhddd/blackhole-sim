@@ -1,0 +1,412 @@
+/**
+ * 黑洞吞噬流星模拟器 - 引力透镜版
+ * 主样式文件（画布、背景、全局）
+ */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background: #000;
+    color: #fff;
+    min-height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-bottom: 60px;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+#game-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 1;
+}
+
+#blackHoleCanvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background-color: #000;
+}
+
+/* 加载屏幕 */
+.loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9998;
+    transition: opacity 0.5s ease;
+}
+
+.loading-spinner {
+    width: 100px;
+    height: 100px;
+    border: 10px solid rgba(74,158,255,0.2);
+    border-top: 10px solid #4a9eff;
+    border-radius: 50%;
+    animation: spin 1.5s linear infinite;
+    margin-bottom: 25px;
+    box-shadow: 0 0 30px rgba(74,158,255,0.5);
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+    color: #a0c8ff;
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+    text-align: center;
+    text-shadow: 0 0 10px rgba(74,158,255,0.5);
+}
+
+.loading-progress {
+    width: 300px;
+    height: 8px;
+    background: rgba(74,158,255,0.2);
+    border-radius: 4px;
+    margin-top: 15px;
+    overflow: hidden;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+
+.loadingProgressBar {
+    height: 100%;
+    background: linear-gradient(to right, #004e92, #4a9eff);
+    width: 0%;
+    transition: width 0.5s ease;
+    box-shadow: 0 0 15px rgba(74,158,255,0.7);
+}
+
+/* 错误模态框 */
+.error-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.95);
+    z-index: 9999;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.error-content {
+    background: rgba(200,0,0,0.95);
+    border-radius: 12px;
+    padding: 25px;
+    max-width: 700px;
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    border: 3px solid #ff5555;
+    box-shadow: 0 0 40px rgba(255,0,0,0.7);
+    animation: errorPulse 2s infinite;
+}
+
+@keyframes errorPulse {
+    0% { box-shadow: 0 0 40px rgba(255,0,0,0.7); }
+    50% { box-shadow: 0 0 50px rgba(255,100,100,0.9); }
+    100% { box-shadow: 0 0 40px rgba(255,0,0,0.7); }
+}
+
+.error-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid rgba(255,255,255,0.3);
+}
+
+.error-header i {
+    font-size: 2.5rem;
+    color: #ffcc00;
+    margin-right: 15px;
+}
+
+.error-header h2 {
+    color: white;
+    font-size: 1.8rem;
+    text-shadow: 0 0 10px rgba(255,255,255,0.5);
+}
+
+.error-message {
+    background: rgba(0,0,0,0.6);
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-family: 'Courier New', monospace;
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-height: 300px;
+    overflow-y: auto;
+    color: #ffcccc;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    border: 1px solid rgba(255,100,100,0.5);
+}
+
+.error-stack {
+    background: rgba(0,0,0,0.8);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-family: 'Courier New', monospace;
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-height: 250px;
+    overflow-y: auto;
+    color: #ffaaaa;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    border: 1px solid rgba(255,150,150,0.4);
+}
+
+.error-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 25px;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+}
+
+.error-copy-btn,
+.error-refresh-btn,
+.error-close-btn {
+    padding: 12px 25px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    color: white;
+}
+
+.error-copy-btn { background: linear-gradient(to right, #004e92, #0083b0); }
+.error-refresh-btn { background: linear-gradient(to right, #00b09b, #96c93d); }
+.error-close-btn { background: linear-gradient(to right, #8e2de2, #4a00e0); }
+
+.error-copy-btn:hover,
+.error-refresh-btn:hover,
+.error-close-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.4);
+}
+
+.error-info {
+    color: #ffcc99;
+    font-size: 0.9rem;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(255,255,255,0.2);
+    line-height: 1.5;
+}
+
+/* 调试信息 */
+.debug-info {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background: rgba(0,20,60,0.9);
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    color: #a0c8ff;
+    z-index: 10002;
+    display: none;
+    border: 1px solid rgba(100,150,255,0.3);
+    backdrop-filter: blur(4px);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    pointer-events: none;
+}
+
+.debug-toggle {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(0,30,80,0.95);
+    color: #4a9eff;
+    border: 1px solid rgba(100,150,255,0.5);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10001;
+    font-size: 1.3rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    transition: all 0.2s ease;
+}
+
+.debug-toggle:hover {
+    background: rgba(0,50,120,0.95);
+    transform: scale(1.1);
+}
+
+/* 下方滚动介绍区 */
+.content-scroll-area {
+    min-height: 150vh;
+    padding-top: 100vh;
+    padding-bottom: 200px;
+    color: #c2d9ff;
+    max-width: 800px;
+    margin: 0 auto;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+.content-scroll-area h2 {
+    color: #8e2de2;
+    margin: 30px 0 15px;
+    border-bottom: 1px solid rgba(100,150,255,0.3);
+    padding-bottom: 10px;
+}
+
+.content-scroll-area p {
+    margin-bottom: 15px;
+    line-height: 1.6;
+}
+
+.content-scroll-area ul,
+.content-scroll-area ol {
+    margin-left: 20px;
+    margin-bottom: 20px;
+}
+
+.content-scroll-area li {
+    margin-bottom: 8px;
+}
+
+/* 滚动提示 */
+.scroll-hint {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,20,60,0.9);
+    color: #a0c8ff;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid rgba(100,150,255,0.3);
+    animation: bounce 2s infinite;
+    transition: opacity 0.5s ease;
+}
+
+@keyframes bounce {
+    0%,100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(-10px); }
+}
+
+/* 左侧提示浮层 */
+.hint {
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    background: rgba(0,20,60,0.9);
+    padding: 12px 15px;
+    border-radius: 8px;
+    border-left: 4px solid #8e2de2;
+    max-width: 250px;
+    z-index: 100;
+    animation: pulse 2s infinite;
+    font-size: 0.85rem;
+    transition: opacity 0.5s ease;
+}
+
+@keyframes pulse {
+    0% { opacity: 0.7; }
+    50% { opacity: 1; }
+    100% { opacity: 0.7; }
+}
+
+/* 冷却指示器 */
+.cooldown-indicator {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.8);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    z-index: 1000;
+    display: none;
+    border: 2px solid #ff5555;
+}
+
+/* 流星信息悬浮标签 */
+.meteor-label {
+    position: fixed;
+    background: rgba(0,20,60,0.95);
+    color: #a0c8ff;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    pointer-events: none;
+    z-index: 99999;
+    border: 1px solid rgba(100,150,255,0.5);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.7);
+    max-width: 280px;
+    width: max-content;
+    word-break: break-word;
+    white-space: normal;
+    line-height: 1.5;
+    transform: translate(-50%, -100%);
+    margin-top: -12px;
+    display: none;
+    backdrop-filter: blur(4px);
+    border-left: 4px solid #4a9eff;
+}
+
+.meteor-label::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 8px;
+    border-style: solid;
+    border-color: rgba(0,20,60,0.95) transparent transparent transparent;
+}
+
+.meteor-label.below {
+    transform: translate(-50%, 20px);
+    margin-top: 0;
+}
+
+.meteor-label.below::after {
+    top: auto;
+    bottom: 100%;
+    border-color: transparent transparent rgba(0,20,60,0.95) transparent;
+  }
