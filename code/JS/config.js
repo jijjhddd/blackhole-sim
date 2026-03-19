@@ -55,8 +55,13 @@ const config = {
     // 时间缩放
     timeScale: 1.0,
 
-    // 摄像机移动开关（非观察模式下是否允许移动）
-    cameraMoveEnabled: true,
+    // 摄像机移动开关（控制是否允许任何移动，观察模式已移除）
+    cameraMoveEnabled: false,      // 默认关闭，需在设置中开启
+
+    // 画布设置
+    adaptiveCanvas: false,         // 默认不自适应
+    canvasWidth: 360,
+    canvasHeight: 719,
 
     // 监听器列表
     _listeners: {}
@@ -115,3 +120,4 @@ const configProxy = new Proxy(config, {
     }
 });
 
+module.exports = configProxy;
