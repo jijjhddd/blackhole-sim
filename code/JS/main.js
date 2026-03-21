@@ -29,10 +29,10 @@ const { initInput, cleanupInput, setMousePosition: setInputMousePosition, should
 
 // 引入图表模块
 const chartManager = require('./charts/ChartsManager.js');
-const { 
-    initializeCharts, 
-    updateAllCharts, 
-    clearAllChartData, 
+const {
+    initializeCharts,
+    updateAllCharts,
+    clearAllChartData,
     exportChartData,
     setCurrentFps,
     setCurrentMemory,
@@ -197,21 +197,21 @@ class BlackHoleSimulator {
         this.frameTimes = [];
         this.maxFrameTimeSamples = 60;
         this.isPaused = false;
-        
+
         this.STARS_EXTRA = 200;
         this.starsArray = [];
-        
+
         this.autoMeteorInterval = null;
         this.chartUpdateTimer = null;
         this.keyboardBound = false;
-        
+
         this.physicsTimestep = 1000 / 60;
         this.accumulator = 0;
-        
+
         // 摄像机
         this.camera = new Camera();
         window.camera = this.camera;
-        
+
         // 绑定方法
         this.generateStars = this.generateStars.bind(this);
         this.resizeCanvas = this.resizeCanvas.bind(this);
@@ -229,7 +229,7 @@ class BlackHoleSimulator {
         this.toggleDebugInfo = this.toggleDebugInfo.bind(this);
         this.updateDebugInfoContent = this.updateDebugInfoContent.bind(this);
         this.hideHints = this.hideHints.bind(this);
-        
+
         // 存档相关
         this.saveState = this.saveState.bind(this);
         this.loadState = this.loadState.bind(this);
@@ -239,18 +239,18 @@ class BlackHoleSimulator {
         this.deleteAllSaves = this.deleteAllSaves.bind(this);
         this.copySave = this.copySave.bind(this);
         this.renameSave = this.renameSave.bind(this);
-        
+
         // 摄像机相关
         this.followMeteor = this.followMeteor.bind(this);
         this.resetCamera = this.resetCamera.bind(this);
-        
+
         setStartTime(Date.now());
-        
+
         this.initCanvas();
         this.setupConfigListeners();
         this.start();
     }
-    
+
     // 获取当前状态
     getCurrentState() {
         return {
@@ -340,7 +340,7 @@ class BlackHoleSimulator {
             }
         };
     }
-    
+
     // 保存状态
     async saveState(name = null) {
         try {
@@ -366,7 +366,7 @@ class BlackHoleSimulator {
             return { success: false, error: e.message };
         }
     }
-    
+
     // 加载状态
     async loadState(name) {
         if (!name) {
@@ -382,20 +382,20 @@ class BlackHoleSimulator {
                 Toast.showError(`加载失败: ${result.error}`);
                 return;
             }
-            
+
             const data = result.data;
-            
+
             if (data.config) {
                 Object.assign(config, data.config);
                 if (typeof updateBlackHoleProperties === 'function') {
                     updateBlackHoleProperties();
                 }
             }
-            
+
             state.meteors = [];
             state.dustParticles = [];
             meteorDataCore.clearMeteorList();
-            
+
             if (data.meteors && data.meteorList) {
                 const meteorsMap = new Map();
                 data.meteors.forEach(mData => {
@@ -411,7 +411,7 @@ class BlackHoleSimulator {
                     state.meteors.push(meteor);
                     meteorsMap.set(mData.listId, meteor);
                 });
-                
+
                 data.meteorList.forEach(info => {
                     const meteor = meteorsMap.get(info.id);
                     if (meteor) {
@@ -419,7 +419,7 @@ class BlackHoleSimulator {
                     }
                 });
             }
-            
+
             if (data.dustParticles) {
                 data.dustParticles.forEach(dData => {
                     const dust = new DustParticle(dData.x, dData.y, dData.vx, dData.vy, dData.mass);
@@ -429,7 +429,7 @@ class BlackHoleSimulator {
                     state.dustParticles.push(dust);
                 });
             }
-            
+
             if (data.stats) {
                 const stats = require('./statistics.js');
                 stats.consumedMeteors = data.stats.consumedMeteors || 0;
@@ -440,15 +440,15 @@ class BlackHoleSimulator {
                 stats.meteorSurvivalCount = data.stats.meteorSurvivalCount || 0;
                 stats.setStartTime(data.stats.startTime || Date.now());
             }
-            
+
             if (data.camera) {
                 this.camera.setOffset(data.camera.offsetX || 0, data.camera.offsetY || 0);
                 if (data.camera.scale) this.camera.setScale(data.camera.scale);
             }
-            
+
             updateMeteorListDisplay();
             updateStats();
-            
+
             addLog(`状态已加载: ${name}`, 'info');
             Toast.showSuccess(`状态已加载: ${name}`);
         } catch (e) {
@@ -456,7 +456,7 @@ class BlackHoleSimulator {
             Toast.showError(`加载请求失败: ${e.message}`);
         }
     }
-    
+
     // 刷新存档列表
     async refreshSavesList() {
         try {
@@ -480,7 +480,7 @@ class BlackHoleSimulator {
             Toast.showError('刷新存档列表失败');
         }
     }
-    
+
     // 删除存档
     async deleteSave(name) {
         if (!name) {
@@ -507,7 +507,7 @@ class BlackHoleSimulator {
             Toast.showError(`删除请求失败: ${e.message}`);
         }
     }
-    
+
     // 删除所有存档
     async deleteAllSaves() {
         if (!confirm('确定要删除所有存档吗？此操作不可恢复！')) return;
@@ -529,7 +529,7 @@ class BlackHoleSimulator {
             Toast.showError(`删除请求失败: ${e.message}`);
         }
     }
-    
+
     // 复制存档
     async copySave(name) {
         if (!name) {
@@ -559,7 +559,7 @@ class BlackHoleSimulator {
             Toast.showError(`复制请求失败: ${e.message}`);
         }
     }
-    
+
     // 重命名存档
     async renameSave(name) {
         if (!name) {
@@ -589,7 +589,7 @@ class BlackHoleSimulator {
             Toast.showError(`重命名请求失败: ${e.message}`);
         }
     }
-    
+
     // 跟随流星
     followMeteor(meteorId) {
         const meteor = state.meteors.find(m => m.listId === meteorId);
@@ -598,27 +598,27 @@ class BlackHoleSimulator {
         addLog(`已跟随流星 #${meteorId}`, 'info');
         Toast.showInfo(`已跟随流星 #${meteorId}`);
     }
-    
+
     // 重置摄像机
     resetCamera() {
         this.camera.reset();
         addLog('摄像机已重置', 'info');
         Toast.showInfo('摄像机已重置');
     }
-    
+
     // 键盘事件
     handleKeyDown(event) {
         const target = event.target;
         if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
             return;
         }
-        
+
         const key = event.code;
         const preventKeys = ['Space', 'KeyR', 'KeyD'];
         if (preventKeys.includes(key)) {
             event.preventDefault();
         }
-        
+
         switch (key) {
             case 'Space':
                 this.togglePause();
@@ -633,7 +633,7 @@ class BlackHoleSimulator {
                 break;
         }
     }
-    
+
     hideHints() {
         const hint = document.querySelector('.hint');
         if (hint) {
@@ -643,7 +643,7 @@ class BlackHoleSimulator {
                 hint.style.display = 'none';
             }, 500);
         }
-        
+
         const scrollHint = document.getElementById('scrollHint');
         if (scrollHint) {
             scrollHint.style.opacity = '0';
@@ -652,10 +652,10 @@ class BlackHoleSimulator {
                 scrollHint.style.display = 'none';
             }, 500);
         }
-        
+
         addLog('提示已隐藏', 'info');
     }
-    
+
     setupConfigListeners() {
         config.onChange('autoCreateMeteors', (value) => {
             if (value) {
@@ -664,40 +664,40 @@ class BlackHoleSimulator {
                 this.stopAutoMeteorCreation();
             }
         });
-        
+
         config.onChange('meteorCount', () => {});
         config.onChange('trailLength', (value) => this.updateAllTrailsLength(value));
         config.onChange('autoUpdateCharts', (value) => value ? this.startChartUpdates() : this.stopChartUpdates());
         config.onChange('chartUpdateInterval', () => this.restartChartUpdates());
     }
-    
+
     startChartUpdates() {
         if (this.chartUpdateTimer) clearInterval(this.chartUpdateTimer);
         if (config.autoUpdateCharts) {
             this.chartUpdateTimer = setInterval(() => updateAllCharts(), config.chartUpdateInterval);
-            addLog(`图表自动更新已启动，间隔 ${config.chartUpdateInterval/1000}s`, 'info');
+            addLog(`图表自动更新已启动，间隔 ${config.chartUpdateInterval / 1000}s`, 'info');
         }
     }
-    
+
     stopChartUpdates() {
         if (this.chartUpdateTimer) {
             clearInterval(this.chartUpdateTimer);
             this.chartUpdateTimer = null;
         }
     }
-    
+
     restartChartUpdates() {
         this.stopChartUpdates();
         this.startChartUpdates();
     }
-    
+
     updateAllTrailsLength(length) {
         state.meteors.forEach(meteor => {
             meteor.maxTrailLength = length;
             if (meteor.trail.length > length) meteor.trail = meteor.trail.slice(-length);
         });
     }
-    
+
     generateStars() {
         const canvas = state.canvas;
         if (!canvas) return;
@@ -714,7 +714,7 @@ class BlackHoleSimulator {
         }
         this.starsArray = stars;
     }
-    
+
     initCanvas() {
         try {
             const canvas = document.getElementById('blackHoleCanvas');
@@ -722,7 +722,7 @@ class BlackHoleSimulator {
             const ctx = canvas.getContext('2d');
             state.setCanvas(canvas);
             state.setCtx(ctx);
-            
+
             // 根据配置设置初始尺寸
             if (config.adaptiveCanvas) {
                 canvas.width = window.innerWidth;
@@ -734,21 +734,21 @@ class BlackHoleSimulator {
             state.blackHole.x = canvas.width / 2;
             state.blackHole.y = canvas.height / 2;
             this.generateStars();
-            
+
             if (config.adaptiveCanvas) {
                 window.addEventListener('resize', this.resizeCanvas);
             }
-            
-            // 初始化输入模块，传入放置流星的回调
-            initInput(canvas, (x, y) => this.addMeteorAt(x, y));
-            
+
+            // 初始化输入模块，传入放置流星的回调（屏幕坐标）
+            initInput(canvas, (screenX, screenY) => this.addMeteorAt(screenX, screenY));
+
             addLog('画布初始化成功', 'info');
             updateProgress(10, '画布初始化完成');
         } catch (error) {
             showCriticalError(error, '画布初始化失败');
         }
     }
-    
+
     toggleDebugInfo() {
         const debugInfo = document.getElementById('debugInfo');
         if (debugInfo) {
@@ -764,24 +764,24 @@ class BlackHoleSimulator {
             addLog('调试信息元素不存在', 'warning');
         }
     }
-    
+
     updateDebugInfoContent() {
         const debugInfo = document.getElementById('debugInfo');
         if (!debugInfo || debugInfo.style.display !== 'block') return;
-        
-        const memoryInfo = performance.memory ? 
-            (performance.memory.usedJSHeapSize / 1048576).toFixed(1) + 'MB' : 
+
+        const memoryInfo = performance.memory ?
+            (performance.memory.usedJSHeapSize / 1048576).toFixed(1) + 'MB' :
             'N/A';
-        
+
         const boundaryText = (mode) => {
-            switch(mode) {
+            switch (mode) {
                 case 'remove': return '清除';
                 case 'bounce': return '反弹';
                 case 'ignore': return '不处理';
                 default: return mode;
             }
         };
-        
+
         debugInfo.innerHTML = `
             <div style="padding: 5px; font-family: monospace; font-size: 12px;">
                 <div>FPS: ${this.fps}</div>
@@ -797,26 +797,32 @@ class BlackHoleSimulator {
             </div>
         `;
     }
-    
-    addMeteorAt(x, y) {
+
+    /**
+     * 添加流星（接收屏幕坐标，内部转换为世界坐标）
+     * @param {number} screenX 屏幕X坐标（相对于画布左上角）
+     * @param {number} screenY 屏幕Y坐标（相对于画布左上角）
+     */
+    addMeteorAt(screenX, screenY) {
         try {
-            const meteor = new Meteor(true, x, y);
+            // 将屏幕坐标转换为世界坐标（考虑摄像机偏移和缩放）
+            const worldPos = this.camera.screenToWorld(screenX, screenY);
+            const meteor = new Meteor(true, worldPos.x, worldPos.y);
             state.meteors.push(meteor);
             incrementCreatedMeteor(meteor.speed);
             addLog(`手动添加流星 #${meteor.listId}`, 'info');
-            // 不再显示 Toast 提示
         } catch (error) {
             addLog(`添加流星失败: ${error.message}`, 'error');
         }
     }
-    
+
     clearAllMeteors() {
         state.meteors = [];
         clearMeteorList();
         addLog('已清除所有流星', 'warning');
         Toast.showWarning('已清除所有流星');
     }
-    
+
     resetSimulation() {
         state.meteors = [];
         state.dustParticles = [];
@@ -829,7 +835,7 @@ class BlackHoleSimulator {
         addLog('模拟已重置', 'info');
         Toast.showInfo('模拟已重置');
     }
-    
+
     startAutoMeteorCreation() {
         if (this.autoMeteorInterval) clearInterval(this.autoMeteorInterval);
         this.autoMeteorInterval = setInterval(() => {
@@ -840,17 +846,17 @@ class BlackHoleSimulator {
         }, 1000);
         addLog('自动流星创建已启动', 'info');
     }
-    
+
     stopAutoMeteorCreation() {
         if (this.autoMeteorInterval) {
             clearInterval(this.autoMeteorInterval);
             this.autoMeteorInterval = null;
         }
     }
-    
+
     resizeCanvas() {
         if (!config.adaptiveCanvas) return;
-        
+
         try {
             const canvas = state.canvas;
             if (!canvas) return;
@@ -866,7 +872,7 @@ class BlackHoleSimulator {
             showCriticalError(error, '调整画布大小时出错');
         }
     }
-    
+
     updatePerformanceStats(currentTime) {
         this.frameCount++;
         if (currentTime >= this.lastTime + 1000) {
@@ -893,7 +899,7 @@ class BlackHoleSimulator {
         if (frameTimeEl) frameTimeEl.textContent = avgFrame.toFixed(1);
         this.updateDebugInfoContent();
     }
-    
+
     updatePhysics() {
         physicsUpdate();
         for (let i = state.meteors.length - 1; i >= 0; i--) {
@@ -907,7 +913,7 @@ class BlackHoleSimulator {
             if (d.consumed) state.dustParticles.splice(i, 1);
         }
     }
-    
+
     togglePause() {
         this.isPaused = !this.isPaused;
         const pauseBtn = document.getElementById('pauseBtn');
@@ -918,7 +924,7 @@ class BlackHoleSimulator {
         const animStatusEl = document.getElementById('animationStatus');
         if (animStatusEl) animStatusEl.textContent = this.isPaused ? '已暂停' : '运行中';
     }
-    
+
     animate(currentTime) {
         try {
             if (this.lastAnimationTime === 0) {
@@ -930,14 +936,14 @@ class BlackHoleSimulator {
             this.lastAnimationTime = currentTime;
             const safeDelta = Math.min(delta, 100);
             this.updatePerformanceStats(currentTime);
-            
+
             const ctx = state.ctx;
             const canvas = state.canvas;
             if (!ctx || !canvas) {
                 this.animationId = requestAnimationFrame(this.animate);
                 return;
             }
-            
+
             if (!this.isPaused) {
                 this.accumulator += safeDelta * config.timeScale;
                 while (this.accumulator >= this.physicsTimestep) {
@@ -948,16 +954,16 @@ class BlackHoleSimulator {
             } else {
                 this.accumulator = 0;
             }
-            
+
             this.camera.update();
             updateCameraControls();
-            
+
             Renderer.clear(ctx, canvas.width, canvas.height);
             Renderer.drawStars(ctx, this.starsArray, this.camera);
             Renderer.drawBlackHole(ctx, this.camera);
             Renderer.drawDust(state.dustParticles, this.camera);
             Renderer.drawMeteors(state.meteors, this.camera);
-            
+
             ctx.save();
             if (this.camera) {
                 ctx.translate(-this.camera.offsetX, -this.camera.offsetY);
@@ -965,17 +971,17 @@ class BlackHoleSimulator {
             }
             drawEffects(ctx);
             ctx.restore();
-            
+
             updateMeteorLabelWithCamera(this.camera);
             Renderer.drawDebugInfo(ctx, {
                 fps: this.fps,
                 meteorCount: state.meteors.length,
                 dustCount: state.dustParticles.length
             });
-            
+
             const animStatusEl = document.getElementById('animationStatus');
             if (animStatusEl) animStatusEl.textContent = this.isPaused ? '已暂停' : '运行中';
-            
+
             if (this.frameCount % 10 === 0) {
                 updateStats();
                 updateMeteorListDisplay();
@@ -986,28 +992,28 @@ class BlackHoleSimulator {
         }
         this.animationId = requestAnimationFrame(this.animate);
     }
-    
+
     start() {
         try {
             addLog('黑洞模拟器启动中...', 'info');
             updateProgress(5, '开始初始化...');
-            
+
             updateProgress(15, '初始化UI面板...');
             initUI();
-            
+
             updateProgress(30, '初始化流星列表...');
             initMeteorList();
-            
+
             updateProgress(40, '初始化流星详情...');
             initMeteorDetailButtons();
-            
+
             initCameraControls(this.camera);
-            
+
             updateProgress(50, '初始化图表系统...');
             initializeCharts().then(chartsInitialized => {
                 if (chartsInitialized) this.startChartUpdates();
             }).catch(err => addLog('图表初始化失败: ' + err.message, 'error'));
-            
+
             const updateChartsBtn = document.getElementById('updateChartsBtn');
             if (updateChartsBtn) updateChartsBtn.addEventListener('click', () => updateAllCharts());
             const clearChartsBtn = document.getElementById('clearAllChartsBtn');
@@ -1018,7 +1024,7 @@ class BlackHoleSimulator {
             }
             const exportChartBtn = document.getElementById('exportChartDataBtn');
             if (exportChartBtn) exportChartBtn.addEventListener('click', exportChartData);
-            
+
             // 存档按钮
             const saveBtn = document.getElementById('saveStateBtn');
             if (saveBtn) {
@@ -1038,7 +1044,7 @@ class BlackHoleSimulator {
             }
             const refreshBtn = document.getElementById('refreshSavesBtn');
             if (refreshBtn) refreshBtn.addEventListener('click', () => this.refreshSavesList());
-            
+
             const deleteBtn = document.getElementById('deleteSaveBtn');
             if (deleteBtn) {
                 deleteBtn.addEventListener('click', () => {
@@ -1065,9 +1071,9 @@ class BlackHoleSimulator {
                     else Toast.showWarning('请先选择要重命名的存档');
                 });
             }
-            
+
             this.refreshSavesList();
-            
+
             updateProgress(55, '绑定控件...');
             const debugToggle = document.getElementById('debugToggle');
             if (debugToggle) {
@@ -1075,23 +1081,23 @@ class BlackHoleSimulator {
                 debugToggle.parentNode.replaceChild(newDebugToggle, debugToggle);
                 newDebugToggle.addEventListener('click', (e) => { e.preventDefault(); this.toggleDebugInfo(); });
             }
-            
+
             const resetCameraBtn = document.getElementById('resetCameraBtn');
             if (resetCameraBtn) resetCameraBtn.addEventListener('click', () => this.resetCamera());
-            
+
             window.addEventListener('keydown', this.handleKeyDown);
             this.keyboardBound = true;
-            
+
             setTimeout(() => this.hideHints(), 5000);
-            
+
             updateProgress(70, '启动动画循环...');
             this.animationId = requestAnimationFrame(this.animate);
-            
+
             if (config.autoCreateMeteors) {
                 updateProgress(85, '启动自动流星创建...');
                 this.startAutoMeteorCreation();
             }
-            
+
             updateProgress(95, '最终准备...');
             addLog('黑洞模拟器启动完成', 'info');
             if (window.finishLoading) window.finishLoading();
@@ -1099,7 +1105,7 @@ class BlackHoleSimulator {
             showCriticalError(error, '启动模拟器时出错');
         }
     }
-    
+
     stop() {
         if (this.animationId) {
             cancelAnimationFrame(this.animationId);
@@ -1121,7 +1127,7 @@ class BlackHoleSimulator {
 let simulator;
 try {
     simulator = new BlackHoleSimulator();
-    
+
     window.simulator = simulator;
     window.simulator.addMeteorAt = simulator.addMeteorAt.bind(simulator);
     window.simulator.clearAllMeteors = simulator.clearAllMeteors.bind(simulator);
@@ -1136,7 +1142,7 @@ try {
     window.simulator.renameSave = simulator.renameSave.bind(simulator);
     window.simulator.followMeteor = simulator.followMeteor.bind(simulator);
     window.simulator.resetCamera = simulator.resetCamera.bind(simulator);
-    
+
     window.destroyMeteor = destroyMeteor;
     window.detonateAllMeteors = detonateAllMeteors;
     window.exportStats = exportStats;
@@ -1146,11 +1152,11 @@ try {
     window.clearAllChartData = clearAllChartData;
     window.exportChartData = exportChartData;
     window.Toast = Toast;
-    
+
     window.persistentMeteorId = null;
     window.mouseX = 0;
     window.mouseY = 0;
-    
+
     addLog('模拟器实例创建成功', 'debug');
 } catch (error) {
     showCriticalError(error, '创建模拟器实例时出错');
