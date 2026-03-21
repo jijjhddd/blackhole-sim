@@ -20,6 +20,9 @@ let longPressIntervalTime = 100;
 let swipePlacementSpeed = 5;
 let safetyZoneRadius = 150;
 
+// 放置流星的回调函数（由 main.js 传入）
+let placeMeteorCallback = null;
+
 function updateInputConfig() {
     longPressDelay = config.longPressDelay;
     longPressIntervalTime = config.longPressIntervalTime;
@@ -31,6 +34,13 @@ config.onChange('longPressDelay', (value) => { longPressDelay = value; });
 config.onChange('longPressIntervalTime', (value) => { longPressIntervalTime = value; });
 config.onChange('swipePlacementSpeed', (value) => { swipePlacementSpeed = value; });
 config.onChange('safetyZoneRadius', (value) => { safetyZoneRadius = value; });
+
+// 监听摄像机移动开关，如果开启则取消长按放置
+config.onChange('cameraMoveEnabled', (value) => {
+    if (value) {
+        stopLongPress();
+    }
+});
 
 function getMousePosition() {
     return { x: mouseX, y: mouseY };
@@ -47,20 +57,18 @@ function isInSafetyZone(x, y) {
 }
 
 function placeMeteor(x, y) {
+    if (!placeMeteorCallback) return false;
     if (isInSafetyZone(x, y)) {
-        addLog('长按位置在安全区内', 'warning');
+        addLog('放置位置在安全区内', 'warning');
         return false;
     }
-    
-    const meteor = new Meteor(true, x, y);
-    state.meteors.push(meteor);
-    addLog(`长按放置流星 #${meteor.listId}`, 'info');
+    placeMeteorCallback(x, y);
     return true;
 }
 
 function startLongPress(x, y) {
-    // 如果摄像机移动启用或观察模式开启，禁用长按放置
-    if (config.cameraMoveEnabled || window.observationMode) return;
+    // 如果摄像机移动开启，则禁用长按放置
+    if (config.cameraMoveEnabled) return;
     if (!config.longPressAddMeteors) return;
     
     if (longPressTimer) clearTimeout(longPressTimer);
@@ -82,7 +90,7 @@ function startLongPress(x, y) {
         
         if (longPressInterval) clearInterval(longPressInterval);
         longPressInterval = setInterval(() => {
-            if (isLongPressActive && config.longPressAddMeteors) {
+            if (isLongPressActive && config.longPressAddMeteors && !config.cameraMoveEnabled) {
                 placeMeteor(lastDragX, lastDragY);
             }
         }, longPressIntervalTime);
@@ -91,7 +99,7 @@ function startLongPress(x, y) {
 }
 
 function handleDrag(x, y) {
-    if (!isLongPressActive || !config.longPressAddMeteors) return;
+    if (!isLongPressActive || !config.longPressAddMeteors || config.cameraMoveEnabled) return;
     
     const now = Date.now();
     const dx = x - lastDragX;
@@ -109,9 +117,7 @@ function handleDrag(x, y) {
             const py = lastDragY + dy * ratio;
             
             if (!isInSafetyZone(px, py)) {
-                const meteor = new Meteor(true, px, py);
-                state.meteors.push(meteor);
-                addLog(`滑动放置流星 #${meteor.listId}`, 'debug');
+                placeMeteor(px, py);
             }
         }
     }
@@ -143,59 +149,149 @@ function shouldIgnoreClick() {
     return ignoreNextClick;
 }
 
-function initInput(canvas) {
-    if (!canvas) return;
-    
-    canvas.addEventListener('mousedown', (e) => {
-        // 如果摄像机移动启用或观察模式开启，禁用长按放置
-        if (config.cameraMoveEnabled || window.observationMode) return;
-        const rect = canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        startLongPress(x, y);
-    });
-    
-    canvas.addEventListener('mousemove', (e) => {
-        const rect = canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        setMousePosition(x, y);
-        // 只有长按激活时才处理拖动放置，且不受摄像机状态影响（因为长按本已禁用）
-        if (isLongPressActive) {
-            handleDrag(x, y);
+// 处理单击（触摸或鼠标）
+function handleTap(x, y) {
+    if (config.cameraMoveEnabled) return; // 移动开启时忽略
+    placeMeteor(x, y);
+}
+
+// 统一触摸事件处理
+function handleTouchStart(e) {
+    // 如果摄像机移动开启，让 CameraControls 处理
+    if (config.cameraMoveEnabled) return;
+
+    e.preventDefault(); // 阻止页面滚动
+
+    const rect = state.canvas.getBoundingClientRect();
+    const touch = e.touches[0];
+    const x = touch.clientX - rect.left;
+    const y = touch.clientY - rect.top;
+
+    startLongPress(x, y);
+}
+
+function handleTouchMove(e) {
+    if (config.cameraMoveEnabled) return;
+    e.preventDefault();
+
+    if (!isLongPressActive) return;
+
+    const rect = state.canvas.getBoundingClientRect();
+    const touch = e.touches[0];
+    const x = touch.clientX - rect.left;
+    const y = touch.clientY - rect.top;
+
+    setMousePosition(x, y);
+    handleDrag(x, y);
+}
+
+function handleTouchEnd(e) {
+    if (config.cameraMoveEnabled) return;
+    e.preventDefault();
+
+    if (!isLongPressActive) {
+        // 如果没有触发长按，可能是单击
+        const rect = state.canvas.getBoundingClientRect();
+        const touch = e.changedTouches[0];
+        if (touch) {
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+            handleTap(x, y);
         }
-    });
-    
-    canvas.addEventListener('mouseup', stopLongPress);
-    canvas.addEventListener('mouseleave', stopLongPress);
-    
-    canvas.addEventListener('touchstart', (e) => {
-        if (config.cameraMoveEnabled || window.observationMode) return;
-        const rect = canvas.getBoundingClientRect();
-        const touch = e.touches[0];
-        const x = touch.clientX - rect.left;
-        const y = touch.clientY - rect.top;
-        startLongPress(x, y);
-    }, { passive: true });
-    
-    canvas.addEventListener('touchmove', (e) => {
-        if (!isLongPressActive) return;
-        const rect = canvas.getBoundingClientRect();
-        const touch = e.touches[0];
-        const x = touch.clientX - rect.left;
-        const y = touch.clientY - rect.top;
-        setMousePosition(x, y);
+    }
+    stopLongPress();
+}
+
+function handleTouchCancel(e) {
+    if (config.cameraMoveEnabled) return;
+    e.preventDefault();
+    stopLongPress();
+}
+
+// 鼠标事件
+function handleMouseDown(e) {
+    if (config.cameraMoveEnabled) return;
+    e.preventDefault();
+
+    const rect = state.canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    startLongPress(x, y);
+}
+
+function handleMouseMove(e) {
+    if (config.cameraMoveEnabled) return;
+
+    const rect = state.canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    setMousePosition(x, y);
+
+    if (isLongPressActive) {
         handleDrag(x, y);
-    }, { passive: true });
-    
-    canvas.addEventListener('touchend', stopLongPress);
-    canvas.addEventListener('touchcancel', stopLongPress);
-    
-    addLog('输入模块初始化完成（长按/滑动放置）', 'info');
+    }
+}
+
+function handleMouseUp(e) {
+    if (config.cameraMoveEnabled) return;
+    e.preventDefault();
+
+    if (!isLongPressActive) {
+        // 单击
+        const rect = state.canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        handleTap(x, y);
+    }
+    stopLongPress();
+}
+
+function handleMouseLeave(e) {
+    if (config.cameraMoveEnabled) return;
+    stopLongPress();
+}
+
+// click 事件处理（用于鼠标，防止重复）
+function handleClick(e) {
+    if (config.cameraMoveEnabled) return;
+    if (shouldIgnoreClick()) return;
+
+    const rect = state.canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    handleTap(x, y);
+}
+
+/**
+ * 初始化输入模块
+ * @param {HTMLCanvasElement} canvas 画布元素
+ * @param {Function} onPlaceMeteor 放置流星的回调，接收 (x, y)
+ */
+function initInput(canvas, onPlaceMeteor) {
+    if (!canvas) return;
+
+    placeMeteorCallback = onPlaceMeteor;
+
+    // 触摸事件
+    canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+    canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+    canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
+    canvas.addEventListener('touchcancel', handleTouchCancel, { passive: false });
+
+    // 鼠标事件
+    canvas.addEventListener('mousedown', handleMouseDown);
+    canvas.addEventListener('mousemove', handleMouseMove);
+    canvas.addEventListener('mouseup', handleMouseUp);
+    canvas.addEventListener('mouseleave', handleMouseLeave);
+    canvas.addEventListener('click', handleClick);
+
+    addLog('输入模块初始化完成（单击/长按放置）', 'info');
 }
 
 function cleanupInput() {
     stopLongPress();
+    // 移除事件监听由外部处理
 }
 
 module.exports = {
@@ -205,5 +301,5 @@ module.exports = {
     cleanupInput,
     updateInputConfig,
     isInSafetyZone,
-    shouldIgnoreClick
+    shouldIgnoreClick,
 };
