@@ -24,7 +24,7 @@ const { initMeteorList, updateMeteorListDisplay } = require('./ui/MeteorList.js'
 // 引入 MeteorDetail 模块
 const { initMeteorDetailButtons, updateCurrentMeteorDetail } = require('./ui/MeteorDetail.js');
 
-// 引入输入模块
+// 引入输入模块（已整合触摸放置）
 const { initInput, cleanupInput, setMousePosition: setInputMousePosition, shouldIgnoreClick } = require('./utils/input.js');
 
 // 引入图表模块
@@ -217,8 +217,6 @@ class BlackHoleSimulator {
         this.resizeCanvas = this.resizeCanvas.bind(this);
         this.animate = this.animate.bind(this);
         this.togglePause = this.togglePause.bind(this);
-        this.handleCanvasClick = this.handleCanvasClick.bind(this);
-        this.handleMouseMove = this.handleMouseMove.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.updatePhysics = this.updatePhysics.bind(this);
         this.updatePerformanceStats = this.updatePerformanceStats.bind(this);
@@ -242,7 +240,7 @@ class BlackHoleSimulator {
         this.copySave = this.copySave.bind(this);
         this.renameSave = this.renameSave.bind(this);
         
-        // 摄像机相关（移除观察模式，保留跟随和重置）
+        // 摄像机相关
         this.followMeteor = this.followMeteor.bind(this);
         this.resetCamera = this.resetCamera.bind(this);
         
@@ -741,10 +739,8 @@ class BlackHoleSimulator {
                 window.addEventListener('resize', this.resizeCanvas);
             }
             
-            canvas.addEventListener('click', this.handleCanvasClick);
-            canvas.addEventListener('mousemove', this.handleMouseMove);
-            
-            initInput(canvas);
+            // 初始化输入模块，传入放置流星的回调
+            initInput(canvas, (x, y) => this.addMeteorAt(x, y));
             
             addLog('画布初始化成功', 'info');
             updateProgress(10, '画布初始化完成');
@@ -802,56 +798,23 @@ class BlackHoleSimulator {
         `;
     }
     
-    handleMouseMove(event) {
-        const rect = state.canvas.getBoundingClientRect();
-        const x = event.clientX - rect.left;
-        const y = event.clientY - rect.top;
-        setInputMousePosition(x, y);
-        window.mouseX = x;
-        window.mouseY = y;
-    }
-    
-    handleCanvasClick(event) {
-        // 如果正在拖动，忽略点击放置
-        if (typeof isDraggingActive === 'function' && isDraggingActive()) {
-            return;
-        }
-        
-        if (shouldIgnoreClick()) return;
-        if (!config.clickPlacementEnabled) {
-            addLog('点击放置流星已禁用', 'warning');
-            return;
-        }
-        
-        // 确保摄像机状态最新
-        this.camera.update();
-        
-        const rect = state.canvas.getBoundingClientRect();
-        const screenX = event.clientX - rect.left;
-        const screenY = event.clientY - rect.top;
-        
-        const worldPos = this.camera.screenToWorld(screenX, screenY);
-        
-        const dist = Math.hypot(worldPos.x - state.blackHole.x, worldPos.y - state.blackHole.y);
-        if (dist <= config.safetyZoneRadius) {
-            addLog('安全区内无法添加流星', 'warning');
-            return;
-        }
-        
-        this.addMeteorAt(worldPos.x, worldPos.y);
-    }
-    
     addMeteorAt(x, y) {
-        const meteor = new Meteor(true, x, y);
-        state.meteors.push(meteor);
-        incrementCreatedMeteor(meteor.speed);
-        addLog(`手动添加流星 #${meteor.listId}`, 'info');
+        try {
+            const meteor = new Meteor(true, x, y);
+            state.meteors.push(meteor);
+            incrementCreatedMeteor(meteor.speed);
+            addLog(`手动添加流星 #${meteor.listId}`, 'info');
+            // 不再显示 Toast 提示
+        } catch (error) {
+            addLog(`添加流星失败: ${error.message}`, 'error');
+        }
     }
     
     clearAllMeteors() {
         state.meteors = [];
         clearMeteorList();
         addLog('已清除所有流星', 'warning');
+        Toast.showWarning('已清除所有流星');
     }
     
     resetSimulation() {
@@ -864,6 +827,7 @@ class BlackHoleSimulator {
         if (config.autoCreateMeteors) this.startAutoMeteorCreation();
         this.camera.reset();
         addLog('模拟已重置', 'info');
+        Toast.showInfo('模拟已重置');
     }
     
     startAutoMeteorCreation() {
@@ -885,7 +849,7 @@ class BlackHoleSimulator {
     }
     
     resizeCanvas() {
-        if (!config.adaptiveCanvas) return; // 自适应关闭时不调整
+        if (!config.adaptiveCanvas) return;
         
         try {
             const canvas = state.canvas;
@@ -1172,7 +1136,6 @@ try {
     window.simulator.renameSave = simulator.renameSave.bind(simulator);
     window.simulator.followMeteor = simulator.followMeteor.bind(simulator);
     window.simulator.resetCamera = simulator.resetCamera.bind(simulator);
-    // 观察模式相关方法已移除
     
     window.destroyMeteor = destroyMeteor;
     window.detonateAllMeteors = detonateAllMeteors;
