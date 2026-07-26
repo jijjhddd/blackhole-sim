@@ -9,35 +9,35 @@
     <link rel="stylesheet" href="code/CSS/panel.css">
     <!-- Font Awesome (图标库) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <!-- ========== 内联核心错误处理 ========== -->
     <script>
         (function() {
             const originalOnError = window.onerror;
             const originalOnUnhandledRejection = window.onunhandledrejection;
-            
+
             window.__CORE_ERRORS = [];
-            
+
             function showCoreError(error, errorInfo = '') {
                 try {
                     console.error('核心错误:', error, errorInfo);
-                    
+
                     window.__CORE_ERRORS.push({
                         time: new Date().toISOString(),
                         error: error?.toString() || '未知错误',
                         info: errorInfo
                     });
-                    
+
                     const errorModal = document.getElementById('errorModal');
                     const errorMessage = document.getElementById('errorMessage');
-                    
+
                     if (errorModal && errorMessage) {
                         let errorText = `=== 核心错误 ===\n\n`;
                         errorText += `错误信息: ${error?.message || error?.toString() || '未知错误'}\n\n`;
                         if (error?.stack) errorText += `堆栈:\n${error.stack}\n\n`;
                         if (errorInfo) errorText += `附加信息:\n${errorInfo}\n\n`;
                         errorText += `时间: ${new Date().toLocaleString()}`;
-                        
+
                         errorMessage.textContent = errorText;
                         errorModal.style.display = 'flex';
                     }
@@ -45,32 +45,31 @@
                     console.error('显示核心错误时出错:', e);
                 }
             }
-            
+
             window.onerror = function(message, source, lineno, colno, error) {
                 showCoreError(error || new Error(message), `文件: ${source}, 行: ${lineno}, 列: ${colno}`);
                 if (originalOnError) originalOnError.call(this, message, source, lineno, colno, error);
                 return true;
             };
-            
+
             window.onunhandledrejection = function(event) {
                 showCoreError(event.reason || new Error('未处理的Promise拒绝'), '未处理的Promise拒绝');
                 if (originalOnUnhandledRejection) originalOnUnhandledRejection.call(this, event);
                 event.preventDefault();
             };
-            
+
             window.showCoreError = showCoreError;
             window.__GET_CORE_ERRORS = () => window.__CORE_ERRORS;
-            
+
             console.log('核心错误处理已加载');
         })();
     </script>
-    
+
     <!-- 加载屏幕样式 -->
     <style>
         .loading-log { width:300px; height:100px; background:rgba(0,0,0,0.6); border:1px solid #4a9eff; border-radius:4px; margin-top:15px; padding:5px; overflow-y:auto; font-size:0.8rem; color:#a0c8ff; text-align:left; font-family:'Courier New', monospace; }
         .loading-log-entry { border-bottom:1px solid rgba(100,150,255,0.2); padding:2px 0; }
         .loading-percent { color:#4a9eff; font-weight:bold; margin-left:10px; }
-        /* 观察者模式图标已移除 */
         #drag-hint {
             position: fixed;
             top: 20px;
@@ -211,6 +210,7 @@
         <div class="modal-actions">
             <button id="showMeteorInfoBtn" class="meteor-action-btn show-info"><i class="fas fa-info-circle"></i> 显示信息</button>
             <button id="highlightMeteorBtn" class="meteor-action-btn"><i class="fas fa-star"></i> 高亮流星</button>
+            <button id="followMeteorBtn" class="meteor-action-btn"><i class="fas fa-video"></i> 实时跟随</button>
             <button id="destroyMeteorBtn" class="meteor-action-btn"><i class="fas fa-bomb"></i> 摧毁流星</button>
             <button id="removeMeteorFromListBtn" class="meteor-action-btn remove"><i class="fas fa-trash"></i> 删除此流星</button>
             <button id="closeMeteorDetailBtn" class="meteor-action-btn"><i class="fas fa-times"></i> 关闭</button>
@@ -219,6 +219,9 @@
 
     <!-- ========== 流星信息悬浮标签 ========== -->
     <div class="meteor-label" id="meteorLabel"></div>
+
+    <!-- ========== 左下角跟随流星信息框 ========== -->
+    <div id="meteorFollowInfo" style="position: fixed; bottom: 20px; left: 20px; background: rgba(0,15,50,0.95); backdrop-filter: blur(8px); border-left: 4px solid #8e2de2; border-radius: 8px; padding: 10px 15px; min-width: 180px; color: #a0c8ff; font-size: 0.85rem; z-index: 10001; cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,0.5); display: none; transition: all 0.2s ease;"></div>
 
     <!-- ========== 加载管理脚本 ========== -->
     <script>
@@ -247,6 +250,7 @@
                 loadingLogContainer.scrollTop = loadingLogContainer.scrollHeight;
             };
 
+            // ========== 修改：等待字体加载完成后才移除加载屏幕 ==========
             window.finishLoading = function() {
                 document.fonts.ready.then(() => {
                     updateLoadingProgress(100, '启动完成！');
@@ -258,6 +262,7 @@
                         }, 500);
                     }, 800);
                 }).catch(() => {
+                    // 字体加载失败仍继续，但不阻塞
                     updateLoadingProgress(100, '启动完成！');
                     addLoadingLog('模拟器已就绪');
                     setTimeout(() => {
@@ -277,7 +282,7 @@
             const copyBtn = document.getElementById('copyErrorBtn');
             const refreshBtn = document.getElementById('refreshErrorBtn');
             const closeBtn = document.getElementById('closeErrorBtn');
-            
+
             if (copyBtn) {
                 copyBtn.addEventListener('click', function() {
                     const text = document.getElementById('errorMessage').textContent;
@@ -291,14 +296,31 @@
                     });
                 });
             }
-            
+
             if (refreshBtn) {
                 refreshBtn.addEventListener('click', () => location.reload());
             }
-            
+
             if (closeBtn) {
                 closeBtn.addEventListener('click', () => {
                     document.getElementById('errorModal').style.display = 'none';
+                });
+            }
+        });
+    </script>
+
+    <!-- ========== 左下角信息框点击跳转 ========== -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const infoBox = document.getElementById('meteorFollowInfo');
+            if (infoBox) {
+                infoBox.addEventListener('click', function() {
+                    if (window.simulator && window.simulator.followingMeteorId !== null) {
+                        const meteorId = window.simulator.followingMeteorId;
+                        if (window.showMeteorDetail) {
+                            window.showMeteorDetail(meteorId);
+                        }
+                    }
                 });
             }
         });
@@ -341,4 +363,4 @@
         })();
     </script>
 </body>
-</html>
+    </html>
